@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-xc++, -std=c++26, -Wall, -Werror, -pedantic-errors, -Wextra, -Wpedantic, -Wcast-align, -Wcast-qual, -Wconversion, -Wduplicated-branches, -Wduplicated-cond, -Wfloat-equal, -Wlogical-op, -Wredundant-decls, -Wundef, -Wshadow]
