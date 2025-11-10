@@ -1,6 +1,5 @@
-import my_module;
+#include <iostream>
 
-auto main() -> int {
-    hello();
-    (void) (1 + 1);
+auto
+main() -> int {
 }

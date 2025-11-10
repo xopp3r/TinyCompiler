@@ -1,0 +1,128 @@
+// Language grammar in EBNF representation
+
+
+
+
+priority_0              // highest priority
+	: <IDENTIFIER> | <STRING_LITERAL> | <NUMBER_LITERAL> | <CHAR_LITERAL> 
+    | '(' expression ')'
+	;
+
+
+
+priority_1
+	: priority_0 ( '(' (expression (',' expression)*)? ')' )*
+	;
+
+
+priority_2
+	: priority_1
+	| ('&' | '@' | '-' | '!') priority_2
+    | type ':' priority_2
+	;
+
+
+priority_3
+	: priority_2 (('*' | '/' | '%') priority_2)* 
+	;
+
+
+priority_4
+	: priority_3 (('+' | '-') priority_3)*
+	;
+
+
+priority_5
+	: priority_4 (('>' | '<' | '>=' | '<=' | '==' | '!=') priority_4)*
+	;
+
+
+priority_6
+	: priority_5 ('&&' priority_5)*
+	;
+
+
+priority_7
+	: priority_6 ('||' priority_6)*
+	;
+
+
+priority_8              // lowest priority
+	: priority_7 ('=' priority_8)? 
+    ;
+
+
+expression              // common interface
+    : priority_8
+    ;
+
+
+type
+    : 'char' | 'int' | 'uint' | 'ptr' | 'void'
+    ;
+
+
+
+variable_declaration
+    : type <IDENTIFIER>
+
+
+
+statement
+    : expression ';'
+    | variable_declaration ';'
+    | if_statement
+    | while_statement
+    | return_statement
+    ;
+
+
+
+statement_sequence
+    : statement statement_sequence
+    ;
+
+
+
+return_statement
+    : 'return' expression ';'
+    ;
+
+
+body
+    : '{' statement_sequence '}'
+    ;
+
+
+
+if_statement
+    : 'if' '(' expression ')' body (else body)?
+    ;
+
+
+
+while_statement
+    : 'while' '(' expression ')' body
+    ;
+
+
+
+function_defenition
+    : 'function' type <IDENTIFIER> '(' argument_list_defenition ')' body
+    ;
+
+
+
+argument_list_defenition
+    : (variable_declaration (',' variable_declaration)*)?
+    ;
+
+
+
+programm
+    : (function_defenition | variable_declaration)*
+    ;
+
+
+
+// TODO external function / variable declaration

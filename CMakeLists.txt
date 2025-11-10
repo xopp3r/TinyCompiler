@@ -44,6 +44,13 @@ target_sources(main
   PRIVATE
     FILE_SET modules TYPE CXX_MODULES
     FILES
-      src/my_module.cppm
+      libs/fsm/fsm.ixx
+      libs/fsm/vocabulary.ixx
+
+      src/interfaces/I_tokenizer.ixx
+
+      src/tokenizer/position.ixx
+      src/tokenizer/tokenizer.ixx
+      src/tokenizer/token.ixx
 )
 
