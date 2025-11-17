@@ -9,10 +9,10 @@ import position;
 
 export namespace concepts {
 
-    template<typename T>
-    concept I_tokenizer = requires(T tokenizer) {
-        { tokenizer.next_token() } -> std::same_as<std::optional<Token>>;
-        { tokenizer.position() } -> std::same_as<Position>;
-    };
+template <typename T>
+concept I_tokenizer = requires(T tokenizer) {
+    { tokenizer.next_token() } -> std::same_as<std::optional<Token>>;
+    { tokenizer.position() } -> std::same_as<Position>;
+};
 
-}
+}  // namespace concepts

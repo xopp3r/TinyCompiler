@@ -44,8 +44,8 @@ target_sources(main
   PRIVATE
     FILE_SET modules TYPE CXX_MODULES
     FILES
-      libs/fsm/fsm.ixx
-      libs/fsm/vocabulary.ixx
+      libs/trie/trie.ixx
+      libs/trie/compression_table.ixx
 
       src/interfaces/I_tokenizer.ixx
 

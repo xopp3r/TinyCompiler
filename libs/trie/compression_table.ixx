@@ -3,19 +3,20 @@ module;
 #include <cstddef>
 #include <limits>
 
-export module vocabulary;
 
-export namespace fsm {
-constinit unsigned char INVALID = std::numeric_limits<unsigned char>::max();
+export module compression_table;
+
+namespace trie {
+export constexpr unsigned char INVALID = std::numeric_limits<unsigned char>::max();
 }
 
 template <size_t length>
 consteval auto
-inverse(std::array<unsigned char, length> in) {
-    std::array<unsigned char, std::numeric_limits<unsigned char>::max()> result;
+inverse(const std::array<unsigned char, length> &in) {
+    std::array<unsigned char, std::numeric_limits<unsigned char>::max()> result{};
 
-    for (size_t i = 0; i < std::size(in); i++) {
-        result[i] = fsm::INVALID;
+    for (size_t i = 0; i < std::size(result); i++) {
+        result[i] = trie::INVALID;
     }
     for (size_t i = 0; i < std::size(in); i++) {
         result[in[i]] = i;
@@ -24,13 +25,12 @@ inverse(std::array<unsigned char, length> in) {
     return result;
 }
 
-export namespace fsm {
+namespace trie {
 
-template <size_t length> class Translation_table {
+export template <size_t length> 
+class Compression_table {
   public:
-    Translation_table() = delete;
-
-    constexpr Translation_table(std::array<unsigned char, length> &alphabet)
+    constexpr Compression_table(std::array<unsigned char, length> alphabet)
         : to_external(alphabet), to_internal(inverse(alphabet)) {
         static_assert(length < std::numeric_limits<unsigned char>::max(), "Aplhabet is too big");
     }
@@ -55,9 +55,10 @@ template <size_t length> class Translation_table {
         return length;
     }
 
-  private:
     std::array<unsigned char, length> to_external{};
     std::array<unsigned char, std::numeric_limits<unsigned char>::max()> to_internal{};
 };
 
-} // namespace fsm
+template <size_t length> Compression_table(std::array<unsigned char, length>) -> Compression_table<length>;
+
+} // namespace trie
