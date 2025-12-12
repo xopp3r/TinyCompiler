@@ -6,7 +6,7 @@ module;
 #include <string>
 #include <string_view>
 
-export module Diagnostics;
+export module diagnostics;
 import position;
 
 enum class Diagnostic_level { note, warning, error, fatal_error };

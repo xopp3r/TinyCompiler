@@ -1,19 +1,40 @@
-// Language grammar in EBNF representation
+// Language grammar in EBNF (?) representation
 
 
+
+identifier
+    : ([A-Z] | [a-z] | '_') ([A-Z] | [a-z] | [0-9] | '_')*
+    ;
+
+string_literal
+    : '"' <???> '"'
+    ;
+
+number_literal
+    : '-'? [0-9]+
+    ;
+
+char_literal
+    : '"' <???> '"'
+    ;
+
+type
+    : 'char' 
+    | 'int' 
+    | 'uint' 
+    | 'ptr' 
+    | 'void'
+    ;
 
 
 priority_0              // highest priority
-	: <IDENTIFIER> | <STRING_LITERAL> | <NUMBER_LITERAL> | <CHAR_LITERAL> 
+	: identifier | string_literal | number_literal | char_literal 
     | '(' expression ')'
 	;
-
-
 
 priority_1
 	: priority_0 ( '(' (expression (',' expression)*)? ')' )*
 	;
-
 
 priority_2
 	: priority_1
@@ -21,106 +42,67 @@ priority_2
     | type ':' priority_2
 	;
 
-
 priority_3
 	: priority_2 (('*' | '/' | '%') priority_2)* 
 	;
-
 
 priority_4
 	: priority_3 (('+' | '-') priority_3)*
 	;
 
-
 priority_5
 	: priority_4 (('>' | '<' | '>=' | '<=' | '==' | '!=') priority_4)*
 	;
-
 
 priority_6
 	: priority_5 ('&&' priority_5)*
 	;
 
-
 priority_7
 	: priority_6 ('||' priority_6)*
 	;
-
 
 priority_8              // lowest priority
 	: priority_7 ('=' priority_8)? 
     ;
 
-
 expression              // common interface
     : priority_8
     ;
 
-
-type
-    : 'char' | 'int' | 'uint' | 'ptr' | 'void'
-    ;
-
-
-
 variable_declaration
-    : type <IDENTIFIER>
-
-
+    : type identifier
 
 statement
     : expression ';'
     | variable_declaration ';'
+    | 'return' expression ';'
     | if_statement
     | while_statement
-    | return_statement
     ;
-
-
-
-statement_sequence
-    : statement statement_sequence
-    ;
-
-
-
-return_statement
-    : 'return' expression ';'
-    ;
-
 
 body
-    : '{' statement_sequence '}'
+    : '{' statement* '}'
     ;
-
-
 
 if_statement
-    : 'if' '(' expression ')' body (else body)?
+    : 'if' '(' expression ')' body ('else' body)?
     ;
-
-
 
 while_statement
     : 'while' '(' expression ')' body
     ;
 
-
-
 function_defenition
-    : 'function' type <IDENTIFIER> '(' argument_list_defenition ')' body
+    : 'function' type identifier '(' argument_list_defenition ')' body
     ;
-
-
 
 argument_list_defenition
     : (variable_declaration (',' variable_declaration)*)?
     ;
 
-
-
 programm
-    : (function_defenition | variable_declaration)*
+    : (function_defenition | variable_declaration)+
     ;
 
 

@@ -44,13 +44,16 @@ target_sources(main
   PRIVATE
     FILE_SET modules TYPE CXX_MODULES
     FILES
-      libs/trie/trie.ixx
-      libs/trie/compression_table.ixx
+      libs/finite_automata/DFA.ixx
 
-      src/interfaces/I_tokenizer.ixx
+      # src/interfaces/I_tokenizer.ixx
+
+      src/diagnostics/diagnostics.ixx
 
       src/tokenizer/position.ixx
       src/tokenizer/tokenizer.ixx
+      src/tokenizer/parsing_dfa.ixx
+      src/tokenizer/grammar.ixx
       src/tokenizer/token.ixx
 )
 

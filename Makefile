@@ -12,4 +12,7 @@ release:
 clean:
 	rm -rf build/*
 
-.PHONY: All configure debug release clean
+format:
+	clang-format -i src/** || clang-format -i src/**/** || clang-format -i src/**/**/** || clang-format -i src/**/**/**/**
+
+.PHONY: All configure debug release clean format
