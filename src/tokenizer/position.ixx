@@ -4,17 +4,22 @@ module;
 
 export module position;
 
+namespace tc {
+
 export struct Position {
     size_t line{};
     size_t column{};
     size_t offset{};
 };
 
-template <>
-struct std::formatter<Position> {
-    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
-    constexpr auto format(const Position &pos, std::format_context &ctx) const {
+}
+
+template <>
+struct std::formatter<tc::Position> {
+    constexpr auto parse(std::format_parse_context &ctx) const noexcept { return ctx.begin(); }
+
+    constexpr auto format(const tc::Position &pos, std::format_context &ctx) const {
         return std::format_to(ctx.out(), "{}:{}:{}", pos.line, pos.column, pos.offset);
     }
 };

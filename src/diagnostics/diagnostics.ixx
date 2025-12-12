@@ -9,6 +9,9 @@ module;
 export module diagnostics;
 import position;
 
+namespace tc {
+
+
 enum class Diagnostic_level { note, warning, error, fatal_error };
 
 class Diagnostic {
@@ -28,23 +31,25 @@ class Diagnostic {
     std::source_location m_location;
 };
 
-template <>
-struct std::formatter<Diagnostic_level> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+}
 
-    constexpr auto format(const Diagnostic_level& lvl, std::format_context& ctx) const {
+template <>
+struct std::formatter<tc::Diagnostic_level> {
+    constexpr auto parse(std::format_parse_context& ctx) const noexcept { return ctx.begin(); }
+
+    constexpr auto format(const tc::Diagnostic_level& lvl, std::format_context& ctx) const {
         std::string_view str;
         switch (lvl) {
-            case Diagnostic_level::note:
+            case tc::Diagnostic_level::note:
                 str = "note";
                 break;
-            case Diagnostic_level::warning:
+            case tc::Diagnostic_level::warning:
                 str = "warning";
                 break;
-            case Diagnostic_level::error:
+            case tc::Diagnostic_level::error:
                 str = "error";
                 break;
-            case Diagnostic_level::fatal_error:
+            case tc::Diagnostic_level::fatal_error:
                 str = "fatal error";
                 break;
             default:
@@ -56,23 +61,23 @@ struct std::formatter<Diagnostic_level> {
 };
 
 template <>
-struct std::formatter<Diagnostic> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+struct std::formatter<tc::Diagnostic> {
+    constexpr auto parse(std::format_parse_context& ctx) const noexcept { return ctx.begin(); }
 
-    constexpr auto format(const Diagnostic& diagnostic, std::format_context& ctx) const {
+    constexpr auto format(const tc::Diagnostic& diagnostic, std::format_context& ctx) const {
         std::string_view color;
 
         switch (diagnostic.level()) {
-            case Diagnostic_level::note:
+            case tc::Diagnostic_level::note:
                 color = "\033[1;36m";  // cyan
                 break;
-            case Diagnostic_level::warning:
+            case tc::Diagnostic_level::warning:
                 color = "\033[1;33m";  // yellow
                 break;
-            case Diagnostic_level::error:
+            case tc::Diagnostic_level::error:
                 color = "\033[1;31m";  // red
                 break;
-            case Diagnostic_level::fatal_error:
+            case tc::Diagnostic_level::fatal_error:
                 color = "\033[1;35m";  // magenta
                 break;
         }
@@ -83,6 +88,8 @@ struct std::formatter<Diagnostic> {
                               diagnostic.message(), color_reset);
     }
 };
+
+namespace tc {
 
 export void note(std::string msg, Position pos) {
     Diagnostic err{Diagnostic_level::note, std::move(msg), pos};
@@ -105,3 +112,5 @@ export [[noreturn]] void fatal_error(std::string msg, Position pos) {
     std::println("{}", err);
     std::exit(EXIT_FAILURE);
 };
+
+}

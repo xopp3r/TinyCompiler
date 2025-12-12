@@ -7,6 +7,9 @@ module;
 export module token;
 import position;
 
+namespace tc {
+
+
 export enum class Token_type {
     INVALID = 0,  // ERROR
     IDENTIFIER,   // user-defined name of variable/function
@@ -107,3 +110,6 @@ export struct Token {
         return token_names[static_cast<size_t>(tok_type)];
     };
 };
+
+
+}
