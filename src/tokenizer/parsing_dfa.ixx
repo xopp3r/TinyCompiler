@@ -9,8 +9,8 @@ import DFA;
 
 namespace tc {
 
-consteval auto get_parsing_dfs() {
-    return dfa::DFA{&output_function,       Parsing_state::INITIAL, &transition_function,
+consteval auto get_parsing_dfa() {
+    return dfa::DFA{output_function,        Parsing_state::INITIAL, transition_function,
                     Parsing_state::INVALID, Token_type::INVALID,    Symbol_type::INVALID};
 }
 
@@ -21,7 +21,7 @@ export class Parsing_dfa {
     constexpr void reset() noexcept { dfs.reset(); }
 
    private:
-    decltype(get_parsing_dfs()) dfs = get_parsing_dfs();
+    decltype(get_parsing_dfa()) dfs = get_parsing_dfa();
 };
 
 }  // namespace tc

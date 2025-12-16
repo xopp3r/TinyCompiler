@@ -241,9 +241,9 @@ constinit static const auto char_to_symbol_mapping = []() {
     return table;
 }();
 
-export constexpr Parsing_state transition_function(Parsing_state state, Symbol_type sym) noexcept {
+export constexpr auto transition_function = [](Parsing_state state, Symbol_type sym) noexcept {
     return translation_table[+state][+sym];
-}
+};
 
 export constexpr auto map_char = [](char c) noexcept { return char_to_symbol_mapping[static_cast<unsigned char>(c)]; };
 

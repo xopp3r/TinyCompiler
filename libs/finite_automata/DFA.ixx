@@ -56,10 +56,10 @@ class DFA {
     const Accept_func presentation;
 };
 
-// template <typename State, transition_function<State, Symbol> Trans_func, typename Output,
-//           accepting_state<State, Output> Accept_func>
-// DFA(Accept_func&& presentation_func, State initial_state, Trans_func&& transition_func, State invalid_state,
-//     Output invalid_output)
-//     -> dfa::DFA<<???????>, State, Trans_func, Output, Accept_func>;
+
+template<typename Accept_func, typename Trans_func, typename State, 
+         typename Output, typename Symbol>
+DFA(Accept_func&&, State, Trans_func&&, State, Output, Symbol)
+    -> DFA<Symbol, State, Trans_func, Output, Accept_func>;
 
 }  // namespace dfa

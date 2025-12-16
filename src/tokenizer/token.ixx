@@ -3,6 +3,7 @@ module;
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <format>
 
 export module token;
 import position;
@@ -104,10 +105,26 @@ export struct Token {
     std::optional<std::string> lexeme;  // text of token
     Position position;
     Token_type type;
+};
 
-    constexpr std::string_view name(Token_type tok_type) const noexcept {
-        return token_names[static_cast<size_t>(tok_type)];
-    };
+constexpr std::string_view name(Token_type tok_type) noexcept {
+    return token_names[static_cast<size_t>(tok_type)];
 };
 
 }  // namespace tc
+
+
+template <>
+struct std::formatter<tc::Token> {
+    constexpr auto parse(std::format_parse_context &ctx) const noexcept { return ctx.begin(); }
+
+    constexpr auto format(const tc::Token &tok, std::format_context &ctx) const {
+        return std::format_to(ctx.out(), "{}: '{}' @ {}", name(tok.type), tok.lexeme.value_or(""), tok.position);
+    }
+};
+
+template <>
+struct std::formatter<tc::Token&> : std::formatter<tc::Token> {};
+
+template <>
+struct std::formatter<const tc::Token&> : std::formatter<tc::Token> {};

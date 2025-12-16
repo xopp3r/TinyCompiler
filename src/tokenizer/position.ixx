@@ -22,3 +22,9 @@ struct std::formatter<tc::Position> {
         return std::format_to(ctx.out(), "{}:{}:{}", pos.line, pos.column, pos.offset);
     }
 };
+
+template <>
+struct std::formatter<tc::Position&> : std::formatter<tc::Position> {};
+
+template <>
+struct std::formatter<const tc::Position&> : std::formatter<tc::Position> {};
