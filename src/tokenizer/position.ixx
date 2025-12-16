@@ -12,8 +12,7 @@ export struct Position {
     size_t offset{};
 };
 
-
-}
+}  // namespace tc
 
 template <>
 struct std::formatter<tc::Position> {

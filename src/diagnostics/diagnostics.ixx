@@ -1,16 +1,31 @@
 module;
 #include <cstdlib>
+#include <exception>
 #include <format>
 #include <print>
 #include <source_location>
 #include <string>
 #include <string_view>
+#include <utility>
 
 export module diagnostics;
 import position;
 
 namespace tc {
 
+export class Parser_exception : public std::exception {
+   public:
+    constexpr Parser_exception(std::string&& msg, Position pos) : pos(pos), msg(std::move(msg)) {}
+
+    constexpr virtual ~Parser_exception() = default;
+    constexpr const char* what() const noexcept override { return msg.c_str(); }
+
+    Position where() const noexcept { return pos; }
+
+   private:
+    Position pos;
+    std::string msg;
+};
 
 enum class Diagnostic_level { note, warning, error, fatal_error };
 
@@ -31,7 +46,7 @@ class Diagnostic {
     std::source_location m_location;
 };
 
-}
+}  // namespace tc
 
 template <>
 struct std::formatter<tc::Diagnostic_level> {
@@ -113,4 +128,4 @@ export [[noreturn]] void fatal_error(std::string msg, Position pos) {
     std::exit(EXIT_FAILURE);
 };
 
-}
+}  // namespace tc

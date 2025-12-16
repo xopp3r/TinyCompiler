@@ -1,48 +1,49 @@
 module;
-#include <array>
 #include <cctype>
 #include <concepts>
 #include <cstddef>
+#include <format>
 #include <iterator>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <utility>
 
 export module tokenizer;
 import position;
 import token;
 import diagnostics;
+import grammar;
 
-static constexpr const unsigned char letters[] =
-    R"alphabet(AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz_0123456789(){}[]:;,+-*/%<=>&|!@)alphabet";
-static constexpr std::array alphabet = std::to_array(letters);
+namespace tc {
 
-template <std::forward_iterator Iter>
+template <typename P, typename Symbol, typename Output>
+concept Parser_c = requires(P p, Symbol s) {
+    { p.step(s) } -> std::convertible_to<std::optional<Output>>;
+    { p.try_step(s) } -> std::convertible_to<bool>;
+    { p.reset() };
+};
+
+export template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
 class Tokenizer {
    public:
     Tokenizer() = delete;
-    Tokenizer(Iter begin, Iter end)
-        : current(std::move(begin)),
-          end(std::move(end)){
-
-          };
+    Tokenizer(Iter begin, Iter end, Parser parser) : current(std::move(begin)), end(std::move(end)), parser(parser){};
 
     Position position();
     std::optional<Token> next_token();
 
    private:
-    Iter current;
-    Iter end;
+    Iter current, end;
 
     std::string buffer{};
 
+    Parser parser;
+
     Position cursor{};
-    Position token_start{};
 
-    bool ended() { return current == end; }
+    [[nodiscard]] bool ended() const noexcept { return current == end; }
 
-    char eat() {
+    char eat() noexcept {
         char c = *current;
         current++;
 
@@ -57,53 +58,21 @@ class Tokenizer {
         return c;
     }
 
-    std::string eat_sequence(std::predicate<char> auto&& func) {
-        std::string tmp{};
-
+    void discard_sequence(std::predicate<char> auto&& func) {
         while (not ended()) {
             if (not std::invoke(func, *current)) {
                 break;
             }
-            tmp += eat();
+            eat();
         }
-
-        return tmp;
-    }
-
-    std::optional<std::string> eat_string_literal() {
-        if (*current != '"') return std::nullopt;
-        eat();
-        auto string_literal = eat_sequence([escape = false](char c) mutable {
-            bool ret = c != '"' or escape;
-            escape = c == '\\';
-            return ret;
-        });
-        eat();
-        return string_literal.substr(1, std::size(string_literal) - 1);
-    }
-
-    std::optional<char> eat_char_literal() {
-        if (*current != '\'') return std::nullopt;
-        eat();
-        char c = eat();
-        eat();
-        return c;
     }
 };
 
-template <std::forward_iterator Iter>
-std::optional<Token> Tokenizer<Iter>::next_token() {
+template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
+std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
     buffer.clear();
-    eat_sequence(std::isspace);  // skip whitespaces
-    token_start = cursor;
-
-    if (auto l = eat_string_literal()) {
-        return Token{.lexeme = std::move(*l), .position = token_start, .type = Token_type::STRING};
-    }
-
-    if (auto l = eat_char_literal()) {
-        return Token{.lexeme = {*l}, .position = token_start, .type = Token_type::CHAR};
-    }
+    discard_sequence(std::isspace);  // skip whitespaces
+    Position token_start = cursor;
 
     if (ended()) {
         return std::nullopt;
@@ -118,20 +87,28 @@ std::optional<Token> Tokenizer<Iter>::next_token() {
         const char c = eat();
         buffer += c;
 
-        if (auto t = trie.find(buffer)) {
-            matched_token.type = t;
+        if (not parser.try_step(c)) {
+            break;
+        }
+
+        if (auto type = parser.step(c)) {
             matched_token.size = std::size(buffer);
-            continue;
+            matched_token.type = *type;
         }
-
-        if (trie.contains_prefix(buffer)) {
-            continue;
-        }
-
-        // if (matched_token.type == Token_type::INVALID) {
-        //     error("Invalid token", token_start);
-        // }
     }
+
+    if (matched_token.type == Token_type::INVALID or std::size(buffer) != matched_token.size) {
+        throw Parser_exception(std::format("Unexpected symbol '{}' at {}", buffer[std::size(buffer) - 1], token_start),
+                               token_start);
+    }
+
+    if (matched_token.type == Token_type::IDENTIFIER) {
+        matched_token.type = check_for_keyword(buffer);
+    }
+
+    return create_token(matched_token.type, buffer, token_start);
 };
 
 // static_assert(concepts::I_tokenizer<Tokenizer>);
+
+}  // namespace tc

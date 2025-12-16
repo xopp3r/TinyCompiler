@@ -45,6 +45,8 @@ target_sources(main
     FILE_SET modules TYPE CXX_MODULES
     FILES
       libs/finite_automata/DFA.ixx
+      # libs/trie/trie.ixx
+      # libs/trie/compression_table.ixx
 
       # src/interfaces/I_tokenizer.ixx
 

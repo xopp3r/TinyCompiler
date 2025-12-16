@@ -9,7 +9,6 @@ import position;
 
 namespace tc {
 
-
 export enum class Token_type {
     INVALID = 0,  // ERROR
     IDENTIFIER,   // user-defined name of variable/function
@@ -21,9 +20,9 @@ export enum class Token_type {
     KEYWORD_RETURN,
     KEYWORD_EXTERN,
     KEYWORD_FUNCTION,
-    TYPE_I32,
-    TYPE_U32,
-    TYPE_U8,
+    TYPE_INT,
+    TYPE_UINT,
+    TYPE_CHAR,
     TYPE_VOID,
     TYPE_PTR,
     NUMBER,              // number literal
@@ -111,5 +110,4 @@ export struct Token {
     };
 };
 
-
-}
+}  // namespace tc

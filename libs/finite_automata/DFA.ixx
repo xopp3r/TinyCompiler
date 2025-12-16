@@ -1,6 +1,5 @@
 module;
 #include <algorithm>
-#include <array>
 #include <concepts>
 #include <cstddef>
 #include <optional>
@@ -10,52 +9,57 @@ export module DFA;
 
 namespace dfa {
 
-constexpr auto binary_search_range(std::ranges::random_access_range auto&& range, const auto& value, auto proj) {
-    const auto it = std::ranges::lower_bound(range, value, {}, proj);
-    return (it != std::ranges::end(range) && *it == value) ? it : std::ranges::end(range);
-}
-
 template <typename F, typename State, typename Symbol>
-concept Transition_function = requires(F f, State s, Symbol sym) {
+concept transition_function = requires(F f, State s, Symbol sym) {
     { std::invoke(f, s, sym) } -> std::convertible_to<State>;
 };
 
-template <typename State, size_t states_cnt, size_t final_states_cnt, typename Symbol, size_t alphabet_size,
-          Transition_function<State, Symbol> Func, typename Output>
+template <typename F, typename State, typename Output>
+concept accepting_state = requires(F f, State s) {
+    { std::invoke(f, s) } -> std::convertible_to<Output>;
+};
+
+export template <typename Symbol, typename State, transition_function<State, Symbol> Trans_func, typename Output,
+                 accepting_state<State, Output> Accept_func>
 class DFA {
    public:
-    constexpr DFA(const std::array<State, states_cnt>& states, const std::array<Symbol, alphabet_size>& alphabet,
-                  const std::array<std::pair<State, Output>, final_states_cnt>& accepting_states, State initial_state,
-                  Func&& transition_func, State invalid_state)
-        : states(states),
-          alphabet(alphabet),
-          accepting_states(accepting_states),
-          current_state(initial_state),
+
+    constexpr DFA(Accept_func&& presentation_func, State initial_state, Trans_func&& transition_func,
+                  State invalid_state, Output invalid_output, Symbol)
+        : current_state(initial_state),
           initial_state(initial_state),
           invalid_state(invalid_state),
-          transition_func(std::move(transition_func)) {}
+          invalid_output(invalid_output),
+          transition_func(std::move(transition_func)),
+          presentation(std::move(presentation_func)) {}
 
     constexpr void reset() noexcept { current_state = initial_state; }
 
     // check try_step method before
     constexpr std::optional<Output> step(Symbol s) noexcept {
         current_state = transition_func(current_state, s);
-        auto it = binary_search_range(accepting_states, current_state, &std::pair<State, Output>::first);
-        return it == std::ranges::cend(accepting_states) ? std::nullopt : it->second;
+        Output o = presentation(current_state);
+        return o == invalid_output ? std::nullopt : std::optional{o};
     }
 
     constexpr bool try_step(Symbol s) const noexcept { return invalid_state != transition_func(current_state, s); }
 
    private:
-    std::array<State, states_cnt> states;
-    std::array<Symbol, alphabet_size> alphabet;
-    std::array<std::pair<State, Output>, final_states_cnt> accepting_states;
-
     State current_state;
-    const State initial_state;
-    const State invalid_state;
 
-    const Func transition_func;
+    const State initial_state;
+
+    const State invalid_state;
+    const Output invalid_output;
+
+    const Trans_func transition_func;
+    const Accept_func presentation;
 };
 
-}
+// template <typename State, transition_function<State, Symbol> Trans_func, typename Output,
+//           accepting_state<State, Output> Accept_func>
+// DFA(Accept_func&& presentation_func, State initial_state, Trans_func&& transition_func, State invalid_state,
+//     Output invalid_output)
+//     -> dfa::DFA<<???????>, State, Trans_func, Output, Accept_func>;
+
+}  // namespace dfa
