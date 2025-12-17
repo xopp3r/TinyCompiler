@@ -44,9 +44,9 @@ class Expression : public Node {
     Expression(Token tok) : Node(tok) {}
 };
 
-class UnaryOperation final : public Expression {
+class Unary_operation final : public Expression {
    public:
-    explicit UnaryOperation(Token tok, std::unique_ptr<Expression> value, Token_type Operation)
+    explicit Unary_operation(Token tok, std::unique_ptr<Expression> value, Token_type Operation)
         : Expression(tok), value(std::move(value)), operation(Operation){};
 
     std::unique_ptr<Expression> value;
@@ -55,9 +55,9 @@ class UnaryOperation final : public Expression {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class BinaryOperation final : public Expression {
+class Binary_operation final : public Expression {
    public:
-    explicit BinaryOperation(Token tok, std::unique_ptr<Expression> left_value, std::unique_ptr<Expression> right_value,
+    explicit Binary_operation(Token tok, std::unique_ptr<Expression> left_value, std::unique_ptr<Expression> right_value,
                              Token_type Operation)
         : Expression(tok),
           left_value(std::move(left_value)),
@@ -71,9 +71,9 @@ class BinaryOperation final : public Expression {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class FunctionCall final : public Expression {
+class Function_call final : public Expression {
    public:
-    explicit FunctionCall(Token tok, std::unique_ptr<Expression> function_adress,
+    explicit Function_call(Token tok, std::unique_ptr<Expression> function_adress,
                           std::vector<std::unique_ptr<Expression>>&& arguments)
         : Expression(tok), functionAdress(std::move(function_adress)), arguments(std::move(arguments)){};
 
@@ -110,18 +110,18 @@ class Integer_literal final : public Primitive {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class StringLiteral final : public Primitive {
+class String_literal final : public Primitive {
    public:
-    explicit StringLiteral(Token literal) : Primitive(literal), value(literal.lexeme.value()){};
+    explicit String_literal(Token literal) : Primitive(literal), value(literal.lexeme.value()){};
 
     std::string_view value;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class CharLiteral final : public Primitive {
+class Char_literal final : public Primitive {
    public:
-    explicit CharLiteral(Token literal) : Primitive(literal), value(literal.lexeme.value().at(0)) {
+    explicit Char_literal(Token literal) : Primitive(literal), value(literal.lexeme.value().at(0)) {
         if (std::size(literal.lexeme.value()) != 1) {
             throw Parser_exception(std::format("Invalid char literal: {}", token), token.position);
         }
@@ -151,9 +151,9 @@ class Statement : public Node {
     Statement(Token tok) : Node(tok) {}
 };
 
-class ExpressionStatement final : public Statement {
+class Expression_statement final : public Statement {
    public:
-    explicit ExpressionStatement(Token tok, std::unique_ptr<Expression> expr)
+    explicit Expression_statement(Token tok, std::unique_ptr<Expression> expr)
         : Statement(tok), expression(std::move(expr)){};
 
     std::unique_ptr<Expression> expression;
@@ -161,9 +161,9 @@ class ExpressionStatement final : public Statement {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class VariableDeclarationStatement final : public Statement {
+class Variable_declaration_statement final : public Statement {
    public:
-    explicit VariableDeclarationStatement(Token tok, Token type, Token name) : Statement(tok), type(type), name(name){};
+    explicit Variable_declaration_statement(Token tok, Token type, Token name) : Statement(tok), type(type), name(name){};
 
     Token type;
     Token name;
@@ -171,9 +171,9 @@ class VariableDeclarationStatement final : public Statement {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class IfStatement final : public Statement {
+class If_statement final : public Statement {
    public:
-    explicit IfStatement(Token tok, std::unique_ptr<Expression> condition,
+    explicit If_statement(Token tok, std::unique_ptr<Expression> condition,
                          std::vector<std::unique_ptr<Statement>>&& if_body,
                          std::vector<std::unique_ptr<Statement>>&& else_body)
         : Statement(tok),
@@ -188,9 +188,9 @@ class IfStatement final : public Statement {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class WhileStatement final : public Statement {
+class While_statement final : public Statement {
    public:
-    explicit WhileStatement(Token tok, std::unique_ptr<Expression> condition,
+    explicit While_statement(Token tok, std::unique_ptr<Expression> condition,
                             std::vector<std::unique_ptr<Statement>>&& body)
         : Statement(tok), condition(std::move(condition)), body(std::move(body)){};
 
@@ -200,9 +200,9 @@ class WhileStatement final : public Statement {
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
 
-class ReturnStatement final : public Statement {
+class Return_statement final : public Statement {
    public:
-    explicit ReturnStatement(Token tok, std::unique_ptr<Expression> expr)
+    explicit Return_statement(Token tok, std::unique_ptr<Expression> expr)
         : Statement(tok), expression(std::move(expr)){};
 
     std::unique_ptr<Expression> expression;
@@ -212,16 +212,16 @@ class ReturnStatement final : public Statement {
 
 // < ================ OTHER ================ >
 
-class FunctionDefinition final : public Node {
+class Function_definition final : public Node {
    public:
-    explicit FunctionDefinition(Token tok, Token name, Token return_type,
-                                std::vector<std::unique_ptr<VariableDeclarationStatement>>&& arguments,
+    explicit Function_definition(Token tok, Token name, Token return_type,
+                                std::vector<std::unique_ptr<Variable_declaration_statement>>&& arguments,
                                 std::vector<std::unique_ptr<Statement>>&& body)
         : Node(tok), name(name), return_type(return_type), arguments(std::move(arguments)), body(std::move(body)){};
 
     Token name;
     Token return_type;
-    std::vector<std::unique_ptr<VariableDeclarationStatement>> arguments;
+    std::vector<std::unique_ptr<Variable_declaration_statement>> arguments;
     std::vector<std::unique_ptr<Statement>> body;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
@@ -229,14 +229,14 @@ class FunctionDefinition final : public Node {
 
 class Programm final : public Node {
    public:
-    explicit Programm(std::vector<std::unique_ptr<FunctionDefinition>>&& functions,
-                      std::vector<std::unique_ptr<VariableDeclarationStatement>>&& globals)
+    explicit Programm(std::vector<std::unique_ptr<Function_definition>>&& functions,
+                      std::vector<std::unique_ptr<Variable_declaration_statement>>&& globals)
         : Node(Token{std::nullopt, Position{0, 0, 0}, Token_type::INVALID}),
           functions(std::move(functions)),
           globals_vars(std::move(globals)) {}
 
-    std::vector<std::unique_ptr<FunctionDefinition>> functions;
-    std::vector<std::unique_ptr<VariableDeclarationStatement>> globals_vars;
+    std::vector<std::unique_ptr<Function_definition>> functions;
+    std::vector<std::unique_ptr<Variable_declaration_statement>> globals_vars;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };

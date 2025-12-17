@@ -3,19 +3,19 @@ export module ast:I_ast_visitor;
 export namespace tc {
 
 class Node;
-class BinaryOperation;
-class UnaryOperation;
-class FunctionCall;
+class Binary_operation;
+class Unary_operation;
+class Function_call;
 class Integer_literal;
-class StringLiteral;
-class CharLiteral;
+class String_literal;
+class Char_literal;
 class Variable;
-class ExpressionStatement;
-class VariableDeclarationStatement;
-class IfStatement;
-class WhileStatement;
-class ReturnStatement;
-class FunctionDefinition;
+class Expression_statement;
+class Variable_declaration_statement;
+class If_statement;
+class While_statement;
+class Return_statement;
+class Function_definition;
 class Programm;
 
 // interface for visitor pattern
@@ -23,19 +23,19 @@ class I_ast_visitor {
    public:
     virtual ~I_ast_visitor() = default;
 
-    virtual void visit(BinaryOperation& node) = 0;
-    virtual void visit(UnaryOperation& node) = 0;
-    virtual void visit(FunctionCall& node) = 0;
+    virtual void visit(Binary_operation& node) = 0;
+    virtual void visit(Unary_operation& node) = 0;
+    virtual void visit(Function_call& node) = 0;
     virtual void visit(Integer_literal& node) = 0;
-    virtual void visit(StringLiteral& node) = 0;
-    virtual void visit(CharLiteral& node) = 0;
+    virtual void visit(String_literal& node) = 0;
+    virtual void visit(Char_literal& node) = 0;
     virtual void visit(Variable& node) = 0;
-    virtual void visit(ExpressionStatement& node) = 0;
-    virtual void visit(VariableDeclarationStatement& node) = 0;
-    virtual void visit(IfStatement& node) = 0;
-    virtual void visit(WhileStatement& node) = 0;
-    virtual void visit(ReturnStatement& node) = 0;
-    virtual void visit(FunctionDefinition& node) = 0;
+    virtual void visit(Expression_statement& node) = 0;
+    virtual void visit(Variable_declaration_statement& node) = 0;
+    virtual void visit(If_statement& node) = 0;
+    virtual void visit(While_statement& node) = 0;
+    virtual void visit(Return_statement& node) = 0;
+    virtual void visit(Function_definition& node) = 0;
     virtual void visit(Programm& node) = 0;
 };
 
