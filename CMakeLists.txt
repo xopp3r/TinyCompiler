@@ -28,7 +28,7 @@ target_compile_options(main PRIVATE
     >
     
     $<$<CONFIG:Release>:
-        -O3
+        -O2
         -DNDEBUG
         -march=native
         -ffast-math
@@ -38,7 +38,6 @@ target_compile_options(main PRIVATE
 target_sources(main 
   PRIVATE
     src/main.cpp
-    src/formatters.cpp
 )
 
 target_sources(main
@@ -46,12 +45,13 @@ target_sources(main
     FILE_SET modules TYPE CXX_MODULES
     FILES
       libs/finite_automata/DFA.ixx
-      # libs/trie/trie.ixx
-      # libs/trie/compression_table.ixx
 
-      # src/interfaces/I_tokenizer.ixx
+      src/interfaces/I_ast_visitor.ixx
+      src/exceptions/parser_exception.ixx
 
-      # src/diagnostics/diagnostics.ixx
+      src/parser/ast.ixx
+      src/parser/nodes.ixx
+      src/parser/parser.ixx
 
       src/tokenizer/position.ixx
       src/tokenizer/tokenizer.ixx
