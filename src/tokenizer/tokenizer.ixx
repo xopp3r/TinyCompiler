@@ -2,19 +2,34 @@ module;
 #include <cctype>
 #include <concepts>
 #include <cstddef>
-#include <format>
 #include <iterator>
 #include <optional>
 #include <string>
+#include <format>
 #include <utility>
 
 export module tokenizer;
 import position;
 import token;
-import diagnostics;
 import grammar;
 
 namespace tc {
+
+    
+export class Parser_exception : public std::exception {
+   public:
+    constexpr Parser_exception(std::string&& msg, Position pos) : pos(pos), msg(std::move(msg)) {}
+
+    constexpr virtual ~Parser_exception() = default;
+    constexpr const char* what() const noexcept override { return msg.c_str(); }
+
+    Position where() const noexcept { return pos; }
+
+   private:
+    Position pos;
+    std::string msg;
+};
+
 
 template <typename P, typename Symbol, typename Output>
 concept Parser_c = requires(P p, Symbol s) {
@@ -41,7 +56,7 @@ class Tokenizer {
 
     Position cursor{};
 
-    [[nodiscard]] bool ended() const noexcept { return current == end; }
+    [[nodiscard]] bool ended() const noexcept { return current == end || *current == '\0'; }
 
     char eat() noexcept {
         char c = *current;
@@ -72,6 +87,8 @@ class Tokenizer {
 template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
 std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
     buffer.clear();
+    parser.reset();
+
     discard_sequence([](char c) { return std::isspace(c); });
     Position token_start = cursor;
 
@@ -80,19 +97,19 @@ std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
     }
 
     struct {
-        size_t size{};
-        Token_type type{Token_type::INVALID};
-    } matched_token;
+        size_t size;
+        Token_type type;
+    } matched_token = {0, Token_type::INVALID};
 
-    while (ended()) {
-        const char c = eat();
-        buffer += c;
-
+    while (not ended()) {
+        const char c = *current;
+        
         if (not parser.try_step(c)) {
             break;
         }
-
+        
         if (auto type = parser.step(c)) {
+            buffer += eat();
             matched_token.size = std::size(buffer);
             matched_token.type = *type;
         }
@@ -109,7 +126,5 @@ std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
 
     return create_token(matched_token.type, buffer, token_start);
 };
-
-// static_assert(concepts::I_tokenizer<Tokenizer>);
 
 }  // namespace tc

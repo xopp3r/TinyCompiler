@@ -4,13 +4,14 @@ module;
 #include <optional>
 #include <string>
 #include <format>
+#include <string_view>
 
 export module token;
-import position;
+export import position;
 
 namespace tc {
 
-export enum class Token_type {
+export enum class Token_type : unsigned char {
     INVALID = 0,  // ERROR
     IDENTIFIER,   // user-defined name of variable/function
     KEYWORD_BREAK,
@@ -55,76 +56,80 @@ export enum class Token_type {
     OP_ASSIGNMENT,       // =
     OP_ADRESS,           // &
     OP_DEREFERENCE,      // @
-    PLACEHOLDER          // system internal token
+    PLACEHOLDER,          // system internal token
+    size
 };
 
-static constinit const std::array token_names = {"INVALID",
-                                                 "END",
-                                                 "IDENTIFIER",
-                                                 "KEYWORD_BREAK",
-                                                 "KEYWORD_CONTINUE",
-                                                 "KEYWORD_ELSE",
-                                                 "KEYWORD_IF",
-                                                 "KEYWORD_WHILE",
-                                                 "KEYWORD_RETURN",
-                                                 "KEYWORD_EXTERN",
-                                                 "KEYWORD_TYPE",
-                                                 "KEYWORD_FUNCTION",
-                                                 "INTEGER",
-                                                 "CHAR",
-                                                 "STRING",
-                                                 "SEMICOLON",
-                                                 "COLON",
-                                                 "BRACE_OPEN",
-                                                 "BRACE_CLOSE",
-                                                 "SQUARE_BRACE_OPEN",
-                                                 "SQUARE_BRACE_CLOSE",
-                                                 "PARENTHESES_OPEN",
-                                                 "PARENTHESES_CLOSE",
-                                                 "COMMA",
-                                                 "OP_PLUS",
-                                                 "OP_MINUS",
-                                                 "OP_MUL",
-                                                 "OP_DIV",
-                                                 "OP_MOD",
-                                                 "OP_EQUAL",
-                                                 "OP_GREATER",
-                                                 "OP_GREATER_EQ",
-                                                 "OP_LESS",
-                                                 "OP_LESS_EQ",
-                                                 "OP_NOT_EQUAL",
-                                                 "OP_AND",
-                                                 "OP_OR",
-                                                 "OP_NOT",
-                                                 "OP_ASSIGNMENT",
-                                                 "OP_ADRESS",
-                                                 "OP_DEREFERENCE",
-                                                 "PLACEHOLDER"};
+static constinit const std::array<std::pair<const char *, const char *>, static_cast<size_t>(Token_type::size)> token_mappings = {
+    std::pair("INVALID", "INVALID"),
+    std::pair("IDENTIFIER", "<IDENTIFIER>"),
+    std::pair("KEYWORD_BREAK", "break"),
+    std::pair("KEYWORD_CONTINUE", "continue"),
+    std::pair("KEYWORD_ELSE", "else"),
+    std::pair("KEYWORD_IF", "if"),
+    std::pair("KEYWORD_WHILE", "while"),
+    std::pair("KEYWORD_RETURN", "return"),
+    std::pair("KEYWORD_EXTERN", "extern"),
+    std::pair("KEYWORD_FUNCTION", "function"),
+    std::pair("TYPE_INT", "int"),
+    std::pair("TYPE_UINT", "uint"),
+    std::pair("TYPE_CHAR", "char"),
+    std::pair("TYPE_VOID", "void"),
+    std::pair("TYPE_PTR", "ptr"),
+    std::pair("NUMBER", "<NUMBER>"),
+    std::pair("CHAR", "<CHAR>"),
+    std::pair("STRING", "<STRING>"),
+    std::pair("SEMICOLON", ";"),
+    std::pair("COLON", ":"),
+    std::pair("BRACE_OPEN", "{"),
+    std::pair("BRACE_CLOSE", "}"),
+    std::pair("SQUARE_BRACE_OPEN", "["),
+    std::pair("SQUARE_BRACE_CLOSE", "]"),
+    std::pair("PARENTHESES_OPEN", "("),
+    std::pair("PARENTHESES_CLOSE", ")"),
+    std::pair("COMMA", ","),
+    std::pair("OP_PLUS", "+"),
+    std::pair("OP_MINUS", "-"),
+    std::pair("OP_MUL", "*"),
+    std::pair("OP_DIV", "/"),
+    std::pair("OP_MOD", "%"),
+    std::pair("OP_EQUAL", "=="),
+    std::pair("OP_GREATER", ">"),
+    std::pair("OP_GREATER_EQ", ">="),
+    std::pair("OP_LESS", "<"),
+    std::pair("OP_LESS_EQ", "<="),
+    std::pair("OP_NOT_EQUAL", "!="),
+    std::pair("OP_AND", "&&"),
+    std::pair("OP_OR", "||"),
+    std::pair("OP_NOT", "!"),
+    std::pair("OP_ASSIGNMENT", "="),
+    std::pair("OP_ADRESS", "&"),
+    std::pair("OP_DEREFERENCE", "@"),
+    std::pair("PLACEHOLDER", "")
+};
 
 export struct Token {
     std::optional<std::string> lexeme;  // text of token
     Position position;
     Token_type type;
+    
+    constexpr std::string_view type_str() const noexcept {
+        return token_mappings[static_cast<size_t>(type)].first;
+    }
+    constexpr std::string_view content_str() const noexcept {
+        return lexeme.has_value() ? std::string_view{lexeme.value()} : std::string_view{token_mappings[static_cast<size_t>(type)].second};
+    }
 };
 
-constexpr std::string_view name(Token_type tok_type) noexcept {
-    return token_names[static_cast<size_t>(tok_type)];
-};
 
 }  // namespace tc
 
 
 template <>
 struct std::formatter<tc::Token> {
-    constexpr auto parse(std::format_parse_context &ctx) const noexcept { return ctx.begin(); }
+    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
-    constexpr auto format(const tc::Token &tok, std::format_context &ctx) const {
-        return std::format_to(ctx.out(), "{}: '{}' @ {}", name(tok.type), tok.lexeme.value_or(""), tok.position);
+    constexpr auto format(const tc::Token &tok, auto &ctx) const {
+        return std::format_to(ctx.out(), R"(["{}" {}@{}])", tok.content_str(), tok.type_str(), tok.position);
     }
 };
-
-template <>
-struct std::formatter<tc::Token&> : std::formatter<tc::Token> {};
-
-template <>
-struct std::formatter<const tc::Token&> : std::formatter<tc::Token> {};

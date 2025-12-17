@@ -238,6 +238,7 @@ constinit static const auto char_to_symbol_mapping = []() {
     table['"'] = Symbol_type::DOUBLE_QUOTE;
     table['\\'] = Symbol_type::BACKSLASH;
 
+    table['\0'] = Symbol_type::INVALID;
     return table;
 }();
 

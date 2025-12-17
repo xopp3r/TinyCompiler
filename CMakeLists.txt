@@ -38,6 +38,7 @@ target_compile_options(main PRIVATE
 target_sources(main 
   PRIVATE
     src/main.cpp
+    src/formatters.cpp
 )
 
 target_sources(main
@@ -50,7 +51,7 @@ target_sources(main
 
       # src/interfaces/I_tokenizer.ixx
 
-      src/diagnostics/diagnostics.ixx
+      # src/diagnostics/diagnostics.ixx
 
       src/tokenizer/position.ixx
       src/tokenizer/tokenizer.ixx
