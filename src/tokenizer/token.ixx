@@ -1,9 +1,9 @@
 module;
 #include <array>
 #include <cstddef>
+#include <format>
 #include <optional>
 #include <string>
-#include <format>
 #include <string_view>
 
 export module token;
@@ -56,74 +56,85 @@ export enum class Token_type : unsigned char {
     OP_ASSIGNMENT,       // =
     OP_ADRESS,           // &
     OP_DEREFERENCE,      // @
-    PLACEHOLDER,          // system internal token
+    PLACEHOLDER,         // system internal token
     size
 };
 
-static constinit const std::array<std::pair<const char *, const char *>, static_cast<size_t>(Token_type::size)> token_mappings = {
-    std::pair("INVALID", "INVALID"),
-    std::pair("IDENTIFIER", "<IDENTIFIER>"),
-    std::pair("KEYWORD_BREAK", "break"),
-    std::pair("KEYWORD_CONTINUE", "continue"),
-    std::pair("KEYWORD_ELSE", "else"),
-    std::pair("KEYWORD_IF", "if"),
-    std::pair("KEYWORD_WHILE", "while"),
-    std::pair("KEYWORD_RETURN", "return"),
-    std::pair("KEYWORD_EXTERN", "extern"),
-    std::pair("KEYWORD_FUNCTION", "function"),
-    std::pair("TYPE_INT", "int"),
-    std::pair("TYPE_UINT", "uint"),
-    std::pair("TYPE_CHAR", "char"),
-    std::pair("TYPE_VOID", "void"),
-    std::pair("TYPE_PTR", "ptr"),
-    std::pair("NUMBER", "<NUMBER>"),
-    std::pair("CHAR", "<CHAR>"),
-    std::pair("STRING", "<STRING>"),
-    std::pair("SEMICOLON", ";"),
-    std::pair("COLON", ":"),
-    std::pair("BRACE_OPEN", "{"),
-    std::pair("BRACE_CLOSE", "}"),
-    std::pair("SQUARE_BRACE_OPEN", "["),
-    std::pair("SQUARE_BRACE_CLOSE", "]"),
-    std::pair("PARENTHESES_OPEN", "("),
-    std::pair("PARENTHESES_CLOSE", ")"),
-    std::pair("COMMA", ","),
-    std::pair("OP_PLUS", "+"),
-    std::pair("OP_MINUS", "-"),
-    std::pair("OP_MUL", "*"),
-    std::pair("OP_DIV", "/"),
-    std::pair("OP_MOD", "%"),
-    std::pair("OP_EQUAL", "=="),
-    std::pair("OP_GREATER", ">"),
-    std::pair("OP_GREATER_EQ", ">="),
-    std::pair("OP_LESS", "<"),
-    std::pair("OP_LESS_EQ", "<="),
-    std::pair("OP_NOT_EQUAL", "!="),
-    std::pair("OP_AND", "&&"),
-    std::pair("OP_OR", "||"),
-    std::pair("OP_NOT", "!"),
-    std::pair("OP_ASSIGNMENT", "="),
-    std::pair("OP_ADRESS", "&"),
-    std::pair("OP_DEREFERENCE", "@"),
-    std::pair("PLACEHOLDER", "")
-};
+static constinit const std::array<std::pair<const char *, const char *>, static_cast<size_t>(Token_type::size)>
+    token_mappings = {std::pair("INVALID", "INVALID"),
+                      std::pair("IDENTIFIER", "<IDENTIFIER>"),
+                      std::pair("KEYWORD_BREAK", "break"),
+                      std::pair("KEYWORD_CONTINUE", "continue"),
+                      std::pair("KEYWORD_ELSE", "else"),
+                      std::pair("KEYWORD_IF", "if"),
+                      std::pair("KEYWORD_WHILE", "while"),
+                      std::pair("KEYWORD_RETURN", "return"),
+                      std::pair("KEYWORD_EXTERN", "extern"),
+                      std::pair("KEYWORD_FUNCTION", "function"),
+                      std::pair("TYPE_INT", "int"),
+                      std::pair("TYPE_UINT", "uint"),
+                      std::pair("TYPE_CHAR", "char"),
+                      std::pair("TYPE_VOID", "void"),
+                      std::pair("TYPE_PTR", "ptr"),
+                      std::pair("NUMBER", "<NUMBER>"),
+                      std::pair("CHAR", "<CHAR>"),
+                      std::pair("STRING", "<STRING>"),
+                      std::pair("SEMICOLON", ";"),
+                      std::pair("COLON", ":"),
+                      std::pair("BRACE_OPEN", "{"),
+                      std::pair("BRACE_CLOSE", "}"),
+                      std::pair("SQUARE_BRACE_OPEN", "["),
+                      std::pair("SQUARE_BRACE_CLOSE", "]"),
+                      std::pair("PARENTHESES_OPEN", "("),
+                      std::pair("PARENTHESES_CLOSE", ")"),
+                      std::pair("COMMA", ","),
+                      std::pair("OP_PLUS", "+"),
+                      std::pair("OP_MINUS", "-"),
+                      std::pair("OP_MUL", "*"),
+                      std::pair("OP_DIV", "/"),
+                      std::pair("OP_MOD", "%"),
+                      std::pair("OP_EQUAL", "=="),
+                      std::pair("OP_GREATER", ">"),
+                      std::pair("OP_GREATER_EQ", ">="),
+                      std::pair("OP_LESS", "<"),
+                      std::pair("OP_LESS_EQ", "<="),
+                      std::pair("OP_NOT_EQUAL", "!="),
+                      std::pair("OP_AND", "&&"),
+                      std::pair("OP_OR", "||"),
+                      std::pair("OP_NOT", "!"),
+                      std::pair("OP_ASSIGNMENT", "="),
+                      std::pair("OP_ADRESS", "&"),
+                      std::pair("OP_DEREFERENCE", "@"),
+                      std::pair("PLACEHOLDER", "")};
 
 export struct Token {
     std::optional<std::string> lexeme;  // text of token
     Position position;
     Token_type type;
-    
-    constexpr std::string_view type_str() const noexcept {
-        return token_mappings[static_cast<size_t>(type)].first;
-    }
+
+    constexpr std::string_view type_str() const noexcept { return token_mappings[static_cast<size_t>(type)].first; }
     constexpr std::string_view content_str() const noexcept {
-        return lexeme.has_value() ? std::string_view{lexeme.value()} : std::string_view{token_mappings[static_cast<size_t>(type)].second};
+        return lexeme.has_value() ? std::string_view{lexeme.value()}
+                                  : std::string_view{token_mappings[static_cast<size_t>(type)].second};
     }
 };
 
+export constexpr Token create_token(Token_type type, std::string_view lexeme, Position pos) {
+    switch (type) {
+        case Token_type::IDENTIFIER:
+            [[fallthrough]];
+        case Token_type::NUMBER:
+            return Token{std::string{lexeme}, pos, type};
+        case Token_type::CHAR:
+            [[fallthrough]];
+        case Token_type::STRING:
+            return Token{std::string{lexeme.subview(1, std::size(lexeme) - 1)}, pos, type};
+        default:
+            return Token{std::nullopt, pos, type};
+    }
+}
 
 }  // namespace tc
-
 
 template <>
 struct std::formatter<tc::Token> {

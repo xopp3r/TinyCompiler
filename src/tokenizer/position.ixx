@@ -3,7 +3,6 @@ module;
 
 export module position;
 
-
 namespace tc {
 
 export struct Position {
@@ -14,8 +13,6 @@ export struct Position {
 
 }  // namespace tc
 
-
-
 template <>
 struct std::formatter<tc::Position> {
     constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
@@ -24,5 +21,3 @@ struct std::formatter<tc::Position> {
         return std::format_to(ctx.out(), "[{}:{}:{}]", pos.line, pos.column, pos.offset);
     }
 };
-
-

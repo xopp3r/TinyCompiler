@@ -1,11 +1,10 @@
 module;
 #include <algorithm>
 #include <array>
-#include <optional>
 #include <string_view>
 #include <utility>
 
-export module grammar;
+export module parsing_dfa:grammar;
 import token;
 import position;
 
@@ -256,20 +255,5 @@ export constexpr auto check_for_keyword = [](std::string_view lexeme) {
     const auto it = binary_search_ranges(keywords_list, lexeme, &decltype(keywords_list)::value_type::first);
     return it != std::ranges::end(keywords_list) ? it->second : Token_type::IDENTIFIER;
 };
-
-export constexpr Token create_token(Token_type type, std::string_view lexeme, Position pos) {
-    switch (type) {
-        case Token_type::IDENTIFIER:
-            [[fallthrough]];
-        case Token_type::NUMBER:
-            return Token{std::string{lexeme}, pos, type};
-        case Token_type::CHAR:
-            [[fallthrough]];
-        case Token_type::STRING:
-            return Token{std::string{lexeme.subview(1, std::size(lexeme) - 1)}, pos, type};
-        default:
-            return Token{std::nullopt, pos, type};
-    }
-}
 
 }  // namespace tc
