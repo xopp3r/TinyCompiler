@@ -136,7 +136,8 @@ constinit static const auto keywords_list = []() {
         std::pair("void"sv, Token_type::TYPE_VOID),        std::pair("if"sv, Token_type::KEYWORD_IF),
         std::pair("else"sv, Token_type::KEYWORD_ELSE),     std::pair("while"sv, Token_type::KEYWORD_WHILE),
         std::pair("break"sv, Token_type::KEYWORD_BREAK),   std::pair("function"sv, Token_type::KEYWORD_FUNCTION),
-        std::pair("extern"sv, Token_type::KEYWORD_EXTERN), std::pair("return"sv, Token_type::KEYWORD_RETURN)};
+        std::pair("extern"sv, Token_type::KEYWORD_EXTERN), std::pair("return"sv, Token_type::KEYWORD_RETURN),
+        std::pair("export"sv, Token_type::KEYWORD_EXPORT), std::pair("as"sv, Token_type::KEYWORD_AS)};
 
     std::ranges::sort(keywords, {}, &decltype(keywords)::value_type::first);
 

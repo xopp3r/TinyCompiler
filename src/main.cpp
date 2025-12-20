@@ -9,6 +9,6 @@ auto main() -> int {
     tc::Tokenizer tokenizer{std::begin(text), std::end(text), tc::Parsing_dfa{}};
 
     while (auto tok = tokenizer.next_token()) {
-        std::println("{}", *tok);
+        std::println("{}", tok);
     }
 }

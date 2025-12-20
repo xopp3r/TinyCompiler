@@ -15,7 +15,7 @@ number_literal
     ;
 
 char_literal
-    : '"' <???> '"'
+    : ''' <???> '''
     ;
 
 type
@@ -32,42 +32,45 @@ priority_0              // highest priority
     | '(' expression ')'
 	;
 
-priority_1
-	: priority_0 ( '(' (expression (',' expression)*)? ')' )*
+priority_10
+	: priority_0 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
 	;
 
-priority_2
-	: priority_1
-	| ('&' | '@' | '-' | '!') priority_2
-    | type ':' priority_2
+priority_15
+	: priority_10
+	| ('&' | '@' | '-' | '!') priority_15
 	;
 
-priority_3
-	: priority_2 (('*' | '/' | '%') priority_2)* 
+priority_20
+	: priority_20 ('as' type)*
 	;
 
-priority_4
-	: priority_3 (('+' | '-') priority_3)*
+priority_30
+	: priority_20 (('*' | '/' | '%') priority_20)* 
 	;
 
-priority_5
-	: priority_4 (('>' | '<' | '>=' | '<=' | '==' | '!=') priority_4)*
+priority_40
+	: priority_30 (('+' | '-') priority_30)*
 	;
 
-priority_6
-	: priority_5 ('&&' priority_5)*
+priority_50
+	: priority_40 (('>' | '<' | '>=' | '<=' | '==' | '!=') priority_40)*
 	;
 
-priority_7
-	: priority_6 ('||' priority_6)*
+priority_60
+	: priority_50 ('&&' priority_50)*
 	;
 
-priority_8              // lowest priority
-	: priority_7 ('=' priority_8)? 
+priority_70
+	: priority_60 ('||' priority_60)*
+	;
+
+priority_80              // lowest priority
+	: priority_70 ('=' priority_80)? 
     ;
 
 expression              // common interface
-    : priority_8
+    : priority_80
     ;
 
 variable_declaration
@@ -101,8 +104,13 @@ argument_list_defenition
     : (variable_declaration (',' variable_declaration)*)?
     ;
 
+linkage_qualifiers
+    : export 
+    | extern
+    ;
+
 programm
-    : (function_defenition | variable_declaration)+
+    : (linkage_qualifiers?  (function_defenition | variable_declaration))+
     ;
 
 

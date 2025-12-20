@@ -51,6 +51,7 @@ target_sources(main
 
       src/parser/ast.ixx
       src/parser/nodes.ixx
+      src/parser/annotations.ixx
       src/parser/parser.ixx
 
       src/tokenizer/position.ixx

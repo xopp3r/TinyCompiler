@@ -30,16 +30,13 @@ class Tokenizer {
         : current(std::move(begin)), end(std::move(end)), parser(std::move(parser)){};
 
     Position position();
-    std::optional<Token> next_token();
+    Token next_token();
 
    private:
     Iter current, end;
-
-    std::string buffer{};
-
+    std::string buffer;
     Parser parser;
-
-    Position cursor{};
+    Position cursor;
 
     [[nodiscard]] bool ended() const noexcept { return current == end || *current == '\0'; }
 
@@ -70,7 +67,7 @@ class Tokenizer {
 };
 
 template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
-std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
+Token Tokenizer<Iter, Parser>::next_token() {
     buffer.clear();
     parser.reset();
 
@@ -78,7 +75,7 @@ std::optional<Token> Tokenizer<Iter, Parser>::next_token() {
     Position token_start = cursor;
 
     if (ended()) {
-        return std::nullopt;
+        return Token{std::nullopt, cursor, Token_type::END};
     }
 
     struct {
