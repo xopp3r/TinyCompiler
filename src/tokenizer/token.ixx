@@ -29,6 +29,7 @@ export enum class Token_type : unsigned char {
     TYPE_CHAR,
     TYPE_VOID,
     TYPE_PTR,
+    TYPE_BOOL,
     NUMBER,              // number literal
     CHAR,                // char literal
     STRING,              // string literal
@@ -83,6 +84,7 @@ static constinit const std::array<std::pair<std::string_view, std::string_view>,
     std::pair("TYPE_CHAR", "char"),
     std::pair("TYPE_VOID", "void"),
     std::pair("TYPE_PTR", "ptr"),
+    std::pair("TYPE_BOOL", "bool"),
     std::pair("NUMBER", "<NUMBER>"),
     std::pair("CHAR", "<CHAR>"),
     std::pair("STRING", "<STRING>"),

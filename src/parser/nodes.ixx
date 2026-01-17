@@ -1,5 +1,6 @@
 module;
 #include <format>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -11,6 +12,8 @@ import parser_exception;
 import token;
 
 export namespace tc {
+
+using Var_ref = std::reference_wrapper<Variable_declaration_statement>;
 
 // Base class for every node in ast
 class Node {
@@ -37,6 +40,8 @@ class Node {
 class Expression : public Node {
    public:
     virtual ~Expression() override = default;
+
+    Expression_type type;
 };
 
 class Unary_operation final : public Expression {
@@ -91,7 +96,7 @@ class Integer_literal final : public Primitive {
    public:
     explicit Integer_literal(Token literal) : Primitive(std::move(literal)) {
         try {
-            value = std::stoll(token.lexeme.value());  // string to int
+            value = std::stoi(token.lexeme.value());  // string to int
         } catch (std::invalid_argument&) {
             throw Parser_exception(std::format("Invalid number literal: {}", token), token.position);
         } catch (std::out_of_range&) {
@@ -99,7 +104,7 @@ class Integer_literal final : public Primitive {
         }
     };
 
-    long long value;
+    int value;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
@@ -127,6 +132,8 @@ class Char_literal final : public Primitive {
 class Variable final : public Primitive {
    public:
     explicit Variable(Token tok) : Primitive(std::move(tok)){};
+
+    std::optional<Var_ref> source;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
@@ -200,17 +207,16 @@ class Function_definition final : public Node {
                                  std::vector<std::unique_ptr<Variable_declaration_statement>> arguments,
                                  std::vector<std::unique_ptr<Statement>> body,
                                  Linkage_type linkage = Linkage_type::NONE)
-        : name(std::move(name)),
+        : 
+          var(Token{{}, {}, Token_type::TYPE_PTR}, std::move(name), linkage),
           return_type(std::move(return_type)),
           arguments(std::move(arguments)),
-          body(std::move(body)),
-          linkage(linkage){};
+          body(std::move(body)) {};
 
-    Token name;
+    Variable_declaration_statement var;
     Token return_type;
     std::vector<std::unique_ptr<Variable_declaration_statement>> arguments;
     std::vector<std::unique_ptr<Statement>> body;
-    Linkage_type linkage;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };

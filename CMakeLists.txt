@@ -49,6 +49,11 @@ target_sources(main
       src/interfaces/I_ast_visitor.ixx
       src/exceptions/parser_exception.ixx
 
+      src/driver/driver.ixx
+      
+      src/semantics/type_checker.ixx
+      src/semantics/visibility_checker.ixx
+
       src/parser/ast.ixx
       src/parser/nodes.ixx
       src/parser/annotations.ixx

@@ -8,7 +8,7 @@ module;
 #include <utility>
 
 #define COMMA_OP ,
-#define EXPAND_KEYWORDS_TOKENS(op) TT::TYPE_CHAR op TT::TYPE_VOID op TT::TYPE_PTR op TT::TYPE_INT op TT::TYPE_UINT
+#define EXPAND_KEYWORDS_TOKENS(op) TT::TYPE_CHAR op TT::TYPE_VOID op TT::TYPE_PTR op TT::TYPE_INT op TT::TYPE_UINT op TT::TYPE_BOOL
 
 export module parser;
 import parser_exception;
@@ -23,7 +23,7 @@ concept next_token_callback = requires(F&& f, Args&&... args) {
     { std::invoke(std::forward<F>(f), std::forward<Args>(args)...) } -> std::convertible_to<Return_t>;
 };
 
-template <next_token_callback<Token> Func>
+export template <next_token_callback<Token> Func>
 class Parser {
    public:
     Parser() = delete;
@@ -421,5 +421,10 @@ class Parser {
         return std::make_unique<Programm>(std::move(functions), std::move(global_variables));
     }
 };
+
+template <next_token_callback<Token> Func>
+AST Parser<Func>::build_AST() {
+    return AST{parse_programm()};
+}
 
 }  // namespace tc

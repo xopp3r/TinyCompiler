@@ -5,6 +5,7 @@ module;
 #include <format>
 #include <iterator>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <utility>
 
@@ -26,8 +27,8 @@ export template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
 class Tokenizer {
    public:
     Tokenizer() = delete;
-    Tokenizer(Iter begin, Iter end, Parser&& parser)
-        : current(std::move(begin)), end(std::move(end)), parser(std::move(parser)){};
+    Tokenizer(std::ranges::forward_range auto text, Parser&& parser)
+        : current(std::ranges::begin(text)), end(std::ranges::end(text)), parser(std::move(parser)){};
 
     Position position();
     Token next_token();

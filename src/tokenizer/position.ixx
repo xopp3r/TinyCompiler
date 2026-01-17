@@ -6,9 +6,9 @@ export module position;
 namespace tc {
 
 export struct Position {
-    size_t line{};
-    size_t column{};
-    size_t offset{};
+    unsigned int offset{};
+    unsigned short line{};
+    unsigned short column{};
 };
 
 }  // namespace tc
