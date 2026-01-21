@@ -11,7 +11,7 @@ module;
 #define EXPAND_KEYWORDS_TOKENS(op) TT::TYPE_CHAR op TT::TYPE_VOID op TT::TYPE_PTR op TT::TYPE_INT op TT::TYPE_UINT op TT::TYPE_BOOL
 
 export module parser;
-import parser_exception;
+import exceptions;
 import token;
 import ast;
 

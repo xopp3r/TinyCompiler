@@ -9,12 +9,14 @@ module;
 #include <vector>
 export module visibility_checker;
 import ast;
+import exceptions;
+
 
 
 namespace tc {
 using Var_ref = std::reference_wrapper<Variable_declaration_statement>;
 
-class Visibility_checker final : public I_ast_visitor {
+export class Visibility_checker final : public I_ast_visitor {
   private:
     std::optional<Var_ref> resolve_name(std::string_view name) {
         for (auto&& scope : std::ranges::reverse_view(visible_vars)) {
@@ -52,7 +54,7 @@ class Visibility_checker final : public I_ast_visitor {
         if (auto ref = resolve_name(node.token.lexeme.value())) {
             node.source = ref;
         } else {
-            throw std::format("Reference to undefined symbol {}", node.token.lexeme.value()); // TODO
+            throw Visibility_exception(std::format("Reference to undefined symbol {}", node.token.lexeme.value()), node.token.position);
         }
     }
 

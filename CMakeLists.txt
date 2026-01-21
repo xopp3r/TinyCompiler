@@ -47,11 +47,12 @@ target_sources(main
       libs/finite_automata/DFA.ixx
 
       src/interfaces/I_ast_visitor.ixx
-      src/exceptions/parser_exception.ixx
+      src/exceptions/exceptions.ixx
 
       src/driver/driver.ixx
       
       src/semantics/type_checker.ixx
+      src/semantics/type_system.ixx
       src/semantics/visibility_checker.ixx
 
       src/parser/ast.ixx

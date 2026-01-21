@@ -8,7 +8,7 @@ export module driver;
 import tokenizer;
 import parsing_dfa;
 import parser;
-import parser_exception;
+import exceptions;
 
 import ast;
 

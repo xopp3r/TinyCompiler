@@ -8,7 +8,7 @@ module;
 export module ast:nodes;
 export import :I_ast_visitor;
 export import :annotations;
-import parser_exception;
+import exceptions;
 import token;
 
 export namespace tc {

@@ -12,7 +12,7 @@ module;
 export module tokenizer;
 import position;
 import token;
-import parser_exception;
+import exceptions;
 
 namespace tc {
 

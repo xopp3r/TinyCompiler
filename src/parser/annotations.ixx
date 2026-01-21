@@ -1,3 +1,8 @@
+module;
+#include <cstddef>
+#include <format>
+#include <string_view>
+
 export module ast:annotations;
 import token;
 
@@ -29,4 +34,27 @@ export constexpr Expression_type type_mapping(Token_type t) noexcept {
     }
 }
 
-}  // namespace tc
+
+static constinit const std::array<std::string_view, static_cast<size_t>(Expression_type::size)> typename_mappings = {
+    "INVALID",
+    "uint",
+    "int",
+    "char",
+    "ptr",
+    "void"
+};  // namespace tc
+
+constexpr const std::string_view type_name(Expression_type t) {
+    return typename_mappings[static_cast<size_t>(t)];
+} 
+
+}
+
+template <>
+struct std::formatter<tc::Expression_type> {
+    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+
+    constexpr auto format(const tc::Expression_type &e, auto &ctx) const {
+        return std::format_to(ctx.out(), "{}", type_name(e));
+    }
+};
