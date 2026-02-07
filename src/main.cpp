@@ -1,6 +1,3 @@
 #include <print>
 
-
-auto main() -> int {
-
-}
+auto main() -> int { ; }

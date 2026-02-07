@@ -38,7 +38,7 @@ priority_10
 
 priority_15
 	: priority_10
-	| ('&' | '@' | '-' | '!') priority_15
+	| ('&' | ('@' type ) | '-' | '!') priority_15
 	;
 
 priority_20

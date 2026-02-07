@@ -5,6 +5,7 @@ export namespace tc {
 class Node;
 class Binary_operation;
 class Unary_operation;
+class Type_operation;
 class Function_call;
 class Integer_literal;
 class String_literal;
@@ -25,6 +26,7 @@ class I_ast_visitor {
 
     virtual void visit(Binary_operation& node) = 0;
     virtual void visit(Unary_operation& node) = 0;
+    virtual void visit(Type_operation& node) = 0;
     virtual void visit(Function_call& node) = 0;
     virtual void visit(Integer_literal& node) = 0;
     virtual void visit(String_literal& node) = 0;

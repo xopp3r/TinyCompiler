@@ -53,6 +53,7 @@ target_sources(main
       
       src/semantics/type_checker.ixx
       src/semantics/type_system.ixx
+      src/semantics/operation_categorires.ixx
       src/semantics/visibility_checker.ixx
 
       src/parser/ast.ixx

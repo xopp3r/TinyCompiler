@@ -35,19 +35,26 @@ class Node {
     Node() = default;
 };
 
+// class Type : public Node {
+//    public:
+//     virtual ~Type() override = default;
+
+//     Expression_type type;
+// };
+
 // < ================ EXPRESSIONS ================ >
 
 class Expression : public Node {
    public:
     virtual ~Expression() override = default;
 
-    Expression_type type;
+    Expression_metadata metadata;
 };
 
 class Unary_operation final : public Expression {
    public:
     explicit Unary_operation(Token operation, std::unique_ptr<Expression> value)
-        : operation(std::move(operation)), value(std::move(value)){};
+        : operation(std::move(operation)), value(std::move(value)) {};
 
     Token operation;
     std::unique_ptr<Expression> value;
@@ -59,7 +66,7 @@ class Binary_operation final : public Expression {
    public:
     explicit Binary_operation(Token operation, std::unique_ptr<Expression> left_value,
                               std::unique_ptr<Expression> right_value)
-        : left_value(std::move(left_value)), right_value(std::move(right_value)), operation(std::move(operation)){};
+        : left_value(std::move(left_value)), right_value(std::move(right_value)), operation(std::move(operation)) {};
 
     std::unique_ptr<Expression> left_value;
     std::unique_ptr<Expression> right_value;
@@ -72,10 +79,22 @@ class Function_call final : public Expression {
    public:
     explicit Function_call(std::unique_ptr<Expression> function_adress,
                            std::vector<std::unique_ptr<Expression>> arguments)
-        : function_address(std::move(function_adress)), arguments(std::move(arguments)){};
+        : function_address(std::move(function_adress)), arguments(std::move(arguments)) {};
 
     std::unique_ptr<Expression> function_address;
     std::vector<std::unique_ptr<Expression>> arguments;
+
+    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+};
+
+class Type_operation final : public Expression {
+   public:
+    explicit Type_operation(Token operation, std::unique_ptr<Expression> value, Token type)
+        : value(std::move(value)), type(std::move(type)), operation(std::move(operation)) {};
+
+    std::unique_ptr<Expression> value;
+    Token type;
+    Token operation;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
@@ -89,7 +108,7 @@ class Primitive : public Expression {
     Token token;
 
    protected:
-    Primitive(Token tok) : token(std::move(tok)){};
+    Primitive(Token tok) : token(std::move(tok)) {};
 };
 
 class Integer_literal final : public Primitive {
@@ -111,7 +130,7 @@ class Integer_literal final : public Primitive {
 
 class String_literal final : public Primitive {
    public:
-    explicit String_literal(Token literal) : Primitive(std::move(literal)){};
+    explicit String_literal(Token literal) : Primitive(std::move(literal)) {};
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
 };
@@ -131,7 +150,7 @@ class Char_literal final : public Primitive {
 
 class Variable final : public Primitive {
    public:
-    explicit Variable(Token tok) : Primitive(std::move(tok)){};
+    explicit Variable(Token tok) : Primitive(std::move(tok)) {};
 
     std::optional<Var_ref> source;
 
@@ -147,7 +166,7 @@ class Statement : public Node {
 
 class Expression_statement final : public Statement {
    public:
-    explicit Expression_statement(std::unique_ptr<Expression> expr) : expression(std::move(expr)){};
+    explicit Expression_statement(std::unique_ptr<Expression> expr) : expression(std::move(expr)) {};
 
     std::unique_ptr<Expression> expression;
 
@@ -157,7 +176,7 @@ class Expression_statement final : public Statement {
 class Variable_declaration_statement final : public Statement {
    public:
     explicit Variable_declaration_statement(Token type, Token name, Linkage_type linkage = Linkage_type::NONE)
-        : type(std::move(type)), name(std::move(name)), linkage(linkage){};
+        : type(std::move(type)), name(std::move(name)), linkage(linkage) {};
 
     Token type;
     Token name;
@@ -170,7 +189,7 @@ class If_statement final : public Statement {
    public:
     explicit If_statement(std::unique_ptr<Expression> condition, std::vector<std::unique_ptr<Statement>> if_body,
                           std::vector<std::unique_ptr<Statement>> else_body)
-        : condition(std::move(condition)), if_body(std::move(if_body)), else_body(std::move(else_body)){};
+        : condition(std::move(condition)), if_body(std::move(if_body)), else_body(std::move(else_body)) {};
 
     std::unique_ptr<Expression> condition;
     std::vector<std::unique_ptr<Statement>> if_body;
@@ -182,7 +201,7 @@ class If_statement final : public Statement {
 class While_statement final : public Statement {
    public:
     explicit While_statement(std::unique_ptr<Expression> condition, std::vector<std::unique_ptr<Statement>> body)
-        : condition(std::move(condition)), body(std::move(body)){};
+        : condition(std::move(condition)), body(std::move(body)) {};
 
     std::unique_ptr<Expression> condition;
     std::vector<std::unique_ptr<Statement>> body;
@@ -192,7 +211,7 @@ class While_statement final : public Statement {
 
 class Return_statement final : public Statement {
    public:
-    explicit Return_statement(std::unique_ptr<Expression> expr) : expression(std::move(expr)){};
+    explicit Return_statement(std::unique_ptr<Expression> expr) : expression(std::move(expr)) {};
 
     std::unique_ptr<Expression> expression;
 
@@ -207,8 +226,7 @@ class Function_definition final : public Node {
                                  std::vector<std::unique_ptr<Variable_declaration_statement>> arguments,
                                  std::vector<std::unique_ptr<Statement>> body,
                                  Linkage_type linkage = Linkage_type::NONE)
-        : 
-          var(Token{{}, {}, Token_type::TYPE_PTR}, std::move(name), linkage),
+        : var(Token{{}, {}, Token_type::TYPE_PTR}, std::move(name), linkage),
           return_type(std::move(return_type)),
           arguments(std::move(arguments)),
           body(std::move(body)) {};

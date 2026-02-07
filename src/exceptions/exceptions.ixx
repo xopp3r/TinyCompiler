@@ -14,7 +14,7 @@ export class Parser_exception : public std::exception {
     constexpr Parser_exception(std::string msg) : msg(std::move(msg)), pos(std::nullopt) {}
 
     constexpr virtual ~Parser_exception() = default;
-    constexpr const char *what() const noexcept override { return msg.c_str(); }
+    constexpr const char* what() const noexcept override { return msg.c_str(); }
 
     std::optional<Position> where() const noexcept { return pos; }
 
@@ -50,6 +50,5 @@ export class Visibility_exception : public std::exception {
     Position pos;
     std::string msg;
 };
-
 
 }  // namespace tc

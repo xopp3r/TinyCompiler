@@ -28,7 +28,7 @@ class Tokenizer {
    public:
     Tokenizer() = delete;
     Tokenizer(std::ranges::forward_range auto text, Parser&& parser)
-        : current(std::ranges::begin(text)), end(std::ranges::end(text)), parser(std::move(parser)){};
+        : current(std::ranges::begin(text)), end(std::ranges::end(text)), parser(std::move(parser)) {};
 
     Position position();
     Token next_token();

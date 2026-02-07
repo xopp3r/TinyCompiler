@@ -8,7 +8,8 @@ module;
 #include <utility>
 
 #define COMMA_OP ,
-#define EXPAND_KEYWORDS_TOKENS(op) TT::TYPE_CHAR op TT::TYPE_VOID op TT::TYPE_PTR op TT::TYPE_INT op TT::TYPE_UINT op TT::TYPE_BOOL
+#define EXPAND_KEYWORDS_TOKENS(op) \
+    TT::TYPE_CHAR op TT::TYPE_VOID op TT::TYPE_PTR op TT::TYPE_INT op TT::TYPE_UINT op TT::TYPE_BOOL
 
 export module parser;
 import exceptions;
@@ -185,13 +186,19 @@ class Parser {
 
     // priority_15
     // 	 : priority_10
-    // 	 | ('&' | '@' | '-' | '!') priority_15
+    // 	 | ('&' | ('@' type) | '-' | '!') priority_15
     // 	 ;
     template <>
     std::unique_ptr<Expression> parse_priority<15>() {
         if (auto op = try_consume_token<TT::OP_ADRESS, TT::OP_DEREFERENCE, TT::OP_MINUS, TT::OP_NOT>()) {
-            auto inner = parse_priority<15>();
-            return std::make_unique<Unary_operation>(op, std::move(inner));
+            if (op.value().token_type == TT::OP_DEREFERENCE) {
+                auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
+                auto inner = parse_priority<15>();
+                return std::make_unique<Type_operation>(std::move(op), std::move(inner), std::move(type));
+            } else {
+                auto inner = parse_priority<15>();
+                return std::make_unique<Unary_operation>(op, std::move(inner));
+            }
         } else {
             return parse_priority<10>();
         }
@@ -204,9 +211,9 @@ class Parser {
     std::unique_ptr<Expression> parse_priority<20>() {
         auto left = parse_priority<15>();
         while (auto op = try_consume_token<TT::KEYWORD_AS>()) {
-            auto right = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
+            auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
 
-            left = std::make_unique<Binary_operation>(std::move(op), std::move(left), std::move(right));
+            left = std::make_unique<Type_operation>(std::move(op), std::move(left), std::move(type));
         }
         return left;
     }

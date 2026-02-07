@@ -15,9 +15,9 @@ export struct Position {
 
 template <>
 struct std::formatter<tc::Position> {
-    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    constexpr auto format(const tc::Position &pos, auto &ctx) const {
+    constexpr auto format(const tc::Position& pos, auto& ctx) const {
         return std::format_to(ctx.out(), "[{}:{}:{}]", pos.line, pos.column, pos.offset);
     }
 };

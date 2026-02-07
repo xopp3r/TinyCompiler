@@ -64,9 +64,10 @@ export enum class Token_type : unsigned char {
     size
 };
 
-static constexpr size_t operator+(Token_type s) { return static_cast<size_t>(s); }
+constexpr size_t operator+(Token_type s) { return static_cast<size_t>(s); }
 
-static constinit const std::array<std::pair<std::string_view, std::string_view>, +Token_type::size> token_mappings = {
+namespace {
+constinit const std::array<std::pair<std::string_view, std::string_view>, +Token_type::size> token_mappings = {
     std::pair("INVALID", "INVALID"),
     std::pair("IDENTIFIER", "<IDENTIFIER>"),
     std::pair("KEYWORD_BREAK", "break"),
@@ -116,6 +117,7 @@ static constinit const std::array<std::pair<std::string_view, std::string_view>,
     std::pair("OP_DEREFERENCE", "@"),
     std::pair("PLACEHOLDER", ""),
     std::pair("END", "")};
+}
 
 export constexpr std::string_view type_str(Token_type type) noexcept { return token_mappings[+type].first; }
 
@@ -150,9 +152,9 @@ export constexpr Token create_token(Token_type type, std::string_view lexeme, Po
 
 template <>
 struct std::formatter<tc::Token> {
-    constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    constexpr auto format(const tc::Token &tok, auto &ctx) const {
+    constexpr auto format(const tc::Token& tok, auto& ctx) const {
         return std::format_to(ctx.out(), R"(["{}" {}@{}])", tok.content_str(), tok.type_str(), tok.position);
     }
 };
