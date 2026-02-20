@@ -4,5 +4,5 @@ import driver;
 
 auto main() -> int {
     auto source = std::views::istream<char>(std::cin);
-    tc::compile(source);
+    tc::compile(source, true);
 }

@@ -2,6 +2,7 @@ module;
 #include <sys/types.h>
 
 #include <cstdlib>
+#include <exception>
 #include <print>
 #include <ranges>
 
@@ -12,6 +13,8 @@ import parser;
 import exceptions;
 import type_checker;
 import visibility_checker;
+import ast_printer;
+
 
 import ast;
 
@@ -30,7 +33,7 @@ void validate_and_annotate_ast(AST& ast) {
     ast.root->accept(t);
 }
 
-export void compile(std::ranges::input_range auto text) {
+export void compile(std::ranges::input_range auto text, bool verbose = false) {
     AST ast;
 
     try {  // parse source code to build ast
@@ -47,6 +50,16 @@ export void compile(std::ranges::input_range auto text) {
         std::exit(EXIT_FAILURE);
     } catch (Type_exception& e) {
         std::println("Type error at {}\n: {}", e.where().value_or({}), e.what());
+        std::exit(EXIT_FAILURE);
+    }
+
+    try {
+        if (verbose) {
+            AST_printer p;
+            ast.root->accept(p);
+        }
+    } catch (std::exception& e) {
+        std::println("PRINT FAIL: {}", e.what());
         std::exit(EXIT_FAILURE);
     }
 }
