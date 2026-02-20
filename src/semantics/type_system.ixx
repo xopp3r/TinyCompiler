@@ -8,7 +8,7 @@ export module type_system;
 import ast;
 import token;
 
-namespace tc {
+export namespace tc {
 using Type = Expression_type;
 using Metadata = Expression_metadata;
 
@@ -19,6 +19,7 @@ unsigned char size_of_type(Expression_type t) {
         case Type::PTR:
             return 4;
         case Type::CHAR:
+        case Type::BOOL:
             return 1;
         default:
             return 0;
@@ -36,11 +37,13 @@ void add_implicit_conversion(std::unique_ptr<Expression>& expr, Type type) {
                                             Token{{}, {}, type_mapping_reverse(type)});
 }
 
-bool convertable_to(Type from, Type to) {
+bool convertible_to(Type from, Type to) {
     if (from == to) return true;
     if (is_signed(from) ^ is_signed(to)) return false;
     if (from == Type::PTR ^ from == Type::PTR) return false;
     if (from == Type::CHAR and to == Type::INT) return true;
+    if (from == Type::BOOL and to == Type::CHAR) return true;
+    if (from == Type::BOOL and to == Type::INT) return true;
     throw std::logic_error("unexpected state 1");
 }
 
@@ -51,6 +54,7 @@ Type common_type(Type t1, Type t2) {
     if (is_signed(t1) ^ is_signed(t2)) return Type::INVALID;
     if (t1 == Type::PTR or t2 == Type::PTR) return Type::PTR;
     if (t1 == Type::INT or t2 == Type::INT) return Type::INT;
+    if (t1 == Type::BOOL or t2 == Type::BOOL) return Type::BOOL;
     throw std::logic_error("unexpected state 2");
 }
 

@@ -5,6 +5,7 @@ module;
 #include <functional>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <utility>
 
 #define COMMA_OP ,
@@ -132,9 +133,9 @@ class Parser {
             case TT::IDENTIFIER:
                 return std::make_unique<Variable>(consume_token<TT::IDENTIFIER>());
             case TT::PARENTHESES_OPEN: {
-                discard_token(TT::PARENTHESES_OPEN);
+                discard_token<TT::PARENTHESES_OPEN>();
                 auto expr = parse_expression();
-                discard_token(TT::PARENTHESES_CLOSE);
+                discard_token<TT::PARENTHESES_CLOSE>();
                 return expr;
             };
             default:
@@ -177,7 +178,7 @@ class Parser {
                     left = std::make_unique<Function_call>(std::move(left), std::move(args));
                 }
                 default:
-                    throw Parser_exception("Unreachable state of parse_priority<10>");
+                    throw std::logic_error("Unreachable state of parse_priority<10>");
             }
         }
 
@@ -309,7 +310,7 @@ class Parser {
             case EXPAND_KEYWORDS_TOKENS(: case):
                 return parse_variable_declaration_statement();
             default:
-                parse_expression();
+                return std::make_unique<Expression_statement>(parse_expression());
         }
     }
 
@@ -404,13 +405,13 @@ class Parser {
         while (current_token) {
             Linkage_type lt = Linkage_type::NONE;
             if (auto t = try_consume_token<TT::KEYWORD_EXPORT, TT::KEYWORD_EXTERN>()) {
-                lt = linkage_mapping(*t);
+                lt = linkage_mapping(t->type);
             }
 
             switch (current_token.type) {
                 case TT::KEYWORD_FUNCTION: {
                     auto f = parse_function_definition();
-                    f->linkage = lt;
+                    f->var.linkage = lt;
                     functions.push_back(std::move(f));
                     break;
                 }

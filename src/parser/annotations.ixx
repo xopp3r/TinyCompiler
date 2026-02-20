@@ -21,7 +21,7 @@ export constexpr Linkage_type linkage_mapping(Token_type t) noexcept {
     }
 }
 
-export enum class Expression_type : unsigned char { INVALID, UINT, INT, CHAR, PTR, VOID, size };
+export enum class Expression_type : unsigned char { INVALID, UINT, INT, CHAR, PTR, VOID, BOOL, size };
 
 export constexpr Expression_type type_mapping(Token_type t) noexcept {
     switch (t) {
@@ -35,6 +35,8 @@ export constexpr Expression_type type_mapping(Token_type t) noexcept {
             return Expression_type::PTR;
         case Token_type::TYPE_VOID:
             return Expression_type::VOID;
+        case Token_type::TYPE_BOOL:
+            return Expression_type::BOOL;
         default:
             return Expression_type::INVALID;
     }
@@ -52,6 +54,8 @@ export constexpr Token_type type_mapping_reverse(Expression_type t) noexcept {
             return Token_type::TYPE_PTR;
         case Expression_type::VOID:
             return Token_type::TYPE_VOID;
+        case Expression_type::BOOL:
+            return Token_type::TYPE_BOOL;
         default:
             return Token_type::INVALID;
     }
@@ -60,8 +64,8 @@ export constexpr Token_type type_mapping_reverse(Expression_type t) noexcept {
 export enum class Expression_category : unsigned char { INVALID, LVALUE, RVALUE, size };
 
 export struct Expression_metadata {
-    Expression_type type;
-    Expression_category category;
+    Expression_type type{};
+    Expression_category category{};
 };
 
 constexpr const std::string_view type_name(Expression_type t) {

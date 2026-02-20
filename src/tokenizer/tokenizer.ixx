@@ -23,18 +23,19 @@ concept Parser_c = requires(P p, Symbol s) {
     { p.reset() };
 };
 
-export template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
+export template <std::input_iterator Iter, typename Sentinel, Parser_c<char, Token_type> Parser>
 class Tokenizer {
    public:
     Tokenizer() = delete;
-    Tokenizer(std::ranges::forward_range auto text, Parser&& parser)
-        : current(std::ranges::begin(text)), end(std::ranges::end(text)), parser(std::move(parser)) {};
+    Tokenizer(std::ranges::input_range auto text, Parser parser)
+        : current(std::ranges::begin(text)), end(std::ranges::end(text)), parser(std::move(parser)){};
 
     Position position();
     Token next_token();
 
    private:
-    Iter current, end;
+    Iter current;
+    Sentinel end;
     std::string buffer;
     Parser parser;
     Position cursor;
@@ -67,8 +68,11 @@ class Tokenizer {
     }
 };
 
-template <std::forward_iterator Iter, Parser_c<char, Token_type> Parser>
-Token Tokenizer<Iter, Parser>::next_token() {
+template <std::ranges::input_range R, Parser_c<char, Token_type> P>
+Tokenizer(R, P) -> Tokenizer<std::ranges::iterator_t<R>, std::ranges::sentinel_t<R>, std::remove_cvref_t<P>>;
+
+template <std::input_iterator Iter, typename Sentinel, Parser_c<char, Token_type> Parser>
+Token Tokenizer<Iter, Sentinel, Parser>::next_token() {
     buffer.clear();
     parser.reset();
 

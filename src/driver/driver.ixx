@@ -10,27 +10,43 @@ import tokenizer;
 import parsing_dfa;
 import parser;
 import exceptions;
+import type_checker;
+import visibility_checker;
 
 import ast;
 
 namespace tc {
 
-export AST build_ast(std::ranges::forward_range auto text) {
-    Tokenizer tokenizer{std::move(text), Parsing_dfa{}};
+AST build_ast(std::ranges::input_range auto text) {
+    Tokenizer tokenizer{text, Parsing_dfa{}};
     Parser parser{[&tokenizer = tokenizer]() { return tokenizer.next_token(); }};
     return parser.build_AST();
 }
 
-export void annotate_ast(AST& ast) {}
+void validate_and_annotate_ast(AST& ast) {
+    Visibility_checker v;
+    ast.root->accept(v);
+    Type_checker t;
+    ast.root->accept(t);
+}
 
-export void validate_ast(AST& ast) {}
-
-export void compile(std::ranges::forward_range auto text) {
+export void compile(std::ranges::input_range auto text) {
     AST ast;
-    try {
+
+    try {  // parse source code to build ast
         ast = build_ast(text);
     } catch (Parser_exception& e) {
-        std::println("Parsing error: {}", e.what());
+        std::println("Parsing error at {}\n: {}", e.where().value_or({}), e.what());
+        std::exit(EXIT_FAILURE);
+    }
+
+    try {  // transformations over ast
+        validate_and_annotate_ast(ast);
+    } catch (Visibility_exception& e) {
+        std::println("Visibility error at {}\n: {}", e.where().value_or({}), e.what());
+        std::exit(EXIT_FAILURE);
+    } catch (Type_exception& e) {
+        std::println("Type error at {}\n: {}", e.where().value_or({}), e.what());
         std::exit(EXIT_FAILURE);
     }
 }
