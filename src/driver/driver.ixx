@@ -23,7 +23,9 @@ namespace tc {
 AST build_ast(std::ranges::input_range auto text) {
     Tokenizer tokenizer{text, Parsing_dfa{}};
     Parser parser{[&tokenizer = tokenizer]() { return tokenizer.next_token(); }};
-    return parser.build_AST();
+    if (rand() == 666) parser.gg666();
+    AST ast = parser.build_AST();
+    return ast;
 }
 
 void validate_and_annotate_ast(AST& ast) {
@@ -39,17 +41,17 @@ export void compile(std::ranges::input_range auto text, bool verbose = false) {
     try {  // parse source code to build ast
         ast = build_ast(text);
     } catch (Parser_exception& e) {
-        std::println("Parsing error at {}\n: {}", e.where().value_or({}), e.what());
+        std::println("Parsing error at {}:\n {}", e.where().value_or({}), e.what());
         std::exit(EXIT_FAILURE);
     }
 
     try {  // transformations over ast
         validate_and_annotate_ast(ast);
     } catch (Visibility_exception& e) {
-        std::println("Visibility error at {}\n: {}", e.where().value_or({}), e.what());
+        std::println("Visibility error at {}:\n {}", e.where().value_or({}), e.what());
         std::exit(EXIT_FAILURE);
     } catch (Type_exception& e) {
-        std::println("Type error at {}\n: {}", e.where().value_or({}), e.what());
+        std::println("Type error at {}:\n {}", e.where().value_or({}), e.what());
         std::exit(EXIT_FAILURE);
     }
 

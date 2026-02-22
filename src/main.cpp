@@ -3,6 +3,6 @@
 import driver;
 
 auto main() -> int {
-    auto source = std::views::istream<char>(std::cin);
+    auto source = std::ranges::subrange(std::istreambuf_iterator<char>(std::cin), std::default_sentinel);
     tc::compile(source, true);
 }

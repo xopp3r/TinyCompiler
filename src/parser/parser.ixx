@@ -5,6 +5,7 @@ module;
 #include <functional>
 #include <memory>
 #include <optional>
+#include <print>
 #include <stdexcept>
 #include <utility>
 
@@ -16,6 +17,7 @@ export module parser;
 import exceptions;
 import token;
 import ast;
+
 
 namespace tc {
 using TT = Token_type;
@@ -37,6 +39,7 @@ class Parser {
     }
 
     AST build_AST();
+
 
    private:
     Func get_next_token;  // get next token
@@ -80,8 +83,9 @@ class Parser {
         return t;
     }
 
-    template <size_t operation_priority, Token_type... Allowed_tokens_types>
+    template <int operation_priority, Token_type... Allowed_tokens_types>
     std::unique_ptr<Expression> parse_left_associative_binary_operation_sequence() {
+std::print("parse_left_associative_binary_operation_sequence\n");
         auto left = parse_priority<operation_priority - 10>();  // parse higher priority expressions first
 
         // while priority of current operation match
@@ -95,8 +99,9 @@ class Parser {
         return left;
     }
 
-    template <size_t operation_priority, Token_type... Allowed_tokens_types>
+    template <int operation_priority, Token_type... Allowed_tokens_types>
     std::unique_ptr<Expression> parse_right_associative_binary_operation_sequence() {
+std::print("parse_right_associative_binary_operation_sequence\n");
         // parse most left expr untill operator matches priority
         auto left = parse_priority<operation_priority - 10>();
 
@@ -110,19 +115,20 @@ class Parser {
         return left;
     }
 
-    template <size_t priority>
+    template <int priority>
     std::unique_ptr<Expression> parse_priority() {
         static_assert(false,
                       "Invalid priority level in parse_priority\n"
                       "Main expression parsing function (parse_priority) compiling error");
     }
 
-    // priority_0              // highest priority
+    // priority_1              // highest priority
     // 	: identifier | string_literal | number_literal | char_literal
     //  | '(' expression ')'
     // 	;
-    template <>
-    std::unique_ptr<Expression> parse_priority<0>() {
+    template<>
+    std::unique_ptr<Expression> parse_priority<1>() {
+std::print("parse_priority<1>\n");
         switch (current_token.type) {
             case TT::CHAR:
                 return std::make_unique<Char_literal>(consume_token<TT::CHAR>());
@@ -144,23 +150,24 @@ class Parser {
     }
 
     // priority_10
-    //   : priority_0 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
+    //   : priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<10>() {
-        auto left = parse_priority<0>();
+std::print("parse_priority<10>\n");
+        auto left = parse_priority<1>();
 
         while (auto tok = try_consume_token<TT::PARENTHESES_OPEN, TT::SQUARE_BRACE_OPEN>()) {
-            switch (tok.type) {
+            switch (tok->type) {
                 case TT::SQUARE_BRACE_OPEN: {
                     // array indexing
                     auto right = parse_expression();
                     discard_token<TT::SQUARE_BRACE_CLOSE>();
 
                     // converting arr[i] to @(arr + i)
-                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok.position, TT::OP_PLUS},
+                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_PLUS},
                                                               std::move(left), std::move(right));
-                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok.position, TT::OP_DEREFERENCE},
+                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE},
                                                              std::move(left));
                 }
                 case TT::PARENTHESES_OPEN: {
@@ -191,14 +198,15 @@ class Parser {
     // 	 ;
     template <>
     std::unique_ptr<Expression> parse_priority<15>() {
+std::print("parse_priority<15>\n");
         if (auto op = try_consume_token<TT::OP_ADRESS, TT::OP_DEREFERENCE, TT::OP_MINUS, TT::OP_NOT>()) {
-            if (op.value().token_type == TT::OP_DEREFERENCE) {
+            if (op->type == TT::OP_DEREFERENCE) {
                 auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
                 auto inner = parse_priority<15>();
-                return std::make_unique<Type_operation>(std::move(op), std::move(inner), std::move(type));
+                return std::make_unique<Type_operation>(std::move(op.value()), std::move(inner), std::move(type));
             } else {
                 auto inner = parse_priority<15>();
-                return std::make_unique<Unary_operation>(op, std::move(inner));
+                return std::make_unique<Unary_operation>(std::move(op.value()), std::move(inner));
             }
         } else {
             return parse_priority<10>();
@@ -210,11 +218,12 @@ class Parser {
     // 	 ;
     template <>
     std::unique_ptr<Expression> parse_priority<20>() {
+std::print("parse_priority<20>\n");
         auto left = parse_priority<15>();
         while (auto op = try_consume_token<TT::KEYWORD_AS>()) {
             auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
 
-            left = std::make_unique<Type_operation>(std::move(op), std::move(left), std::move(type));
+            left = std::make_unique<Type_operation>(std::move(op.value()), std::move(left), std::move(type));
         }
         return left;
     }
@@ -224,6 +233,7 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<30>() {
+std::print("parse_priority<30>\n");
         return parse_left_associative_binary_operation_sequence<30, TT::OP_MUL, TT::OP_DIV, TT::OP_MOD>();
     }
 
@@ -232,6 +242,7 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<40>() {
+std::print("parse_priority<40>\n");
         return parse_left_associative_binary_operation_sequence<40, TT::OP_PLUS, TT::OP_MINUS>();
     }
 
@@ -240,6 +251,7 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<50>() {
+std::print("parse_priority<50>\n");
         return parse_left_associative_binary_operation_sequence<50, TT::OP_GREATER, TT::OP_GREATER_EQ, TT::OP_LESS,
                                                                 TT::OP_LESS_EQ, TT::OP_EQUAL, TT::OP_NOT_EQUAL>();
     }
@@ -249,6 +261,7 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<60>() {
+std::print("parse_priority<60>\n");
         return parse_left_associative_binary_operation_sequence<60, TT::OP_AND>();
     }
 
@@ -257,6 +270,7 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<70>() {
+std::print("parse_priority<70>\n");
         return parse_left_associative_binary_operation_sequence<70, TT::OP_OR>();
     }
 
@@ -265,10 +279,13 @@ class Parser {
     //   ;
     template <>
     std::unique_ptr<Expression> parse_priority<80>() {
+std::print("parse_priority<80>\n");
         return parse_right_associative_binary_operation_sequence<80, TT::OP_ASSIGNMENT>();
     }
 
-    std::unique_ptr<Expression> parse_expression() { return parse_priority<80>(); }
+    std::unique_ptr<Expression> parse_expression() { 
+std::print("parse_expr\n");
+            return parse_priority<80>(); }
 
     // variable_declaration
     //     : type identifier
@@ -307,8 +324,11 @@ class Parser {
                 return parse_while_statement();
             case TT::KEYWORD_RETURN:
                 return parse_return_statement();
-            case EXPAND_KEYWORDS_TOKENS(: case):
-                return parse_variable_declaration_statement();
+            case EXPAND_KEYWORDS_TOKENS(: case): {
+                    auto s = parse_variable_declaration_statement();
+                    discard_token<TT::SEMICOLON>();
+                    return s;
+                }
             default:
                 return std::make_unique<Expression_statement>(parse_expression());
         }
@@ -417,6 +437,7 @@ class Parser {
                 }
                 case EXPAND_KEYWORDS_TOKENS(: case): {
                     auto f = parse_variable_declaration_statement();
+                    discard_token<TT::SEMICOLON>();
                     f->linkage = lt;
                     global_variables.push_back(std::move(f));
                     break;
@@ -428,6 +449,21 @@ class Parser {
 
         return std::make_unique<Programm>(std::move(functions), std::move(global_variables));
     }
+
+    public:
+    void gg666() {
+        parse_priority<80>();
+        parse_priority<70>();
+        parse_priority<60>();
+        parse_priority<50>();
+        parse_priority<40>();
+        parse_priority<30>();
+        parse_priority<20>();
+        parse_priority<15>();
+        parse_priority<10>();
+        parse_priority<1>();
+    }
+
 };
 
 template <next_token_callback<Token> Func>

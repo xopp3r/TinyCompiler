@@ -24,6 +24,7 @@ target_compile_options(main PRIVATE
         -g3
         -DDEBUG
         -fno-omit-frame-pointer
+        -fno-inline
         # -fsanitize=address,leak,undefined
     >
     

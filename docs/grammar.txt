@@ -27,13 +27,13 @@ type
     ;
 
 
-priority_0              // highest priority
+priority_1              // highest priority
 	: identifier | string_literal | number_literal | char_literal 
     | '(' expression ')'
 	;
 
 priority_10
-	: priority_0 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
+	: priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
 	;
 
 priority_15
