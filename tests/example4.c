@@ -1,34 +1,38 @@
-// test sample
 
-// #include "io"
+ptr yes;
+ptr no;
 
-
-int square(int number){
-    int sqr;
-    sqr = number *number;
-    return sqr;
-}
-
-pointer yes = "yes";
-pointer no = "no";
+extern fn void puts(){}
+extern fn void scanf(){}
 
 
-int main(void){
+fn uint fibb(uint n) {
+    uint prev; uint curr;
+    prev = curr = 1;
     
-    int x = 7;
-    printf("%d", x);
-    x = x + 2;
-    printf("%d", x);
-    x = sqr(x);
-
-    if (x/6 < 7* 7)   {
-        printf("%s", yes);
-    } else {
-        printf("%s", no);
+    uint i;
+    while (i < n) {
+        uint tmp;
+        tmp = prev;
+        prev = curr;
+        curr = prev + tmp;
     }
 
-    for (int y = x; y > 0; y++){
-        printf("%d", y);
+    return curr;
+}
+
+fn int main(){
+    yes = "yes";
+    no = "no";
+
+    uint limit; uint cnt;
+    scanf("%u%u", &limit, &cnt);
+
+    cnt = fibb(cnt);
+    if (cnt < limit) {
+        puts(yes);
+    } else {
+        puts(no);
     }
 
     return 0;

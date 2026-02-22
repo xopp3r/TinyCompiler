@@ -7,6 +7,7 @@ module;
 #include <optional>
 #include <print>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 #define COMMA_OP ,
@@ -31,10 +32,10 @@ export template <next_token_callback<Token> Func>
 class Parser {
    public:
     Parser() = delete;
-    Parser(Func&& get_next_token)
-        : get_next_token(std::move(get_next_token)), current_token(std::invoke(get_next_token)) {
+    Parser(Func&& get_next_token_f)
+        : current_token(std::invoke(get_next_token_f)), get_next_token(std::move(get_next_token_f)) {
         if (current_token.type == Token_type::END) {
-            throw Parser_exception("Provided file is empty", {0, 0, 0});
+            throw Parser_exception("Provided file is empty");
         }
     }
 
@@ -42,8 +43,8 @@ class Parser {
 
 
    private:
-    Func get_next_token;  // get next token
     Token current_token;
+    Func get_next_token;  // get next token
 
     template <Token_type... types>
     [[nodiscard]] bool current_is_one_of() {
@@ -62,7 +63,10 @@ class Parser {
     template <Token_type... types>
     void discard_token() {
         if (not try_discard_token<types...>()) {
-            throw Parser_exception(std::format("Unexpected token: {}", current_token));
+            auto fmt = std::format("Unexpected token: {}, type '{}' do not match any of allowed types: ", current_token, current_token.type_str());
+            fmt = (fmt + ... + (std::string{type_str(types)} + " or "));
+            fmt.resize(std::size(fmt) - 4);
+            throw Parser_exception(std::move(fmt), current_token.position);
         }
     }
 
@@ -83,52 +87,48 @@ class Parser {
         return t;
     }
 
+    template <int priority>
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, priority>) {
+        static_assert(false,
+                      "Invalid priority level in parse_priority\n"
+                      "Main expression parsing function (parse_priority) compiling error");
+    }
+
     template <int operation_priority, Token_type... Allowed_tokens_types>
     std::unique_ptr<Expression> parse_left_associative_binary_operation_sequence() {
-std::print("parse_left_associative_binary_operation_sequence\n");
-        auto left = parse_priority<operation_priority - 10>();  // parse higher priority expressions first
+        auto left = parse_priority(std::integral_constant<int, operation_priority - 10>{});  // parse higher priority expressions first
 
         // while priority of current operation match
         while (auto op = try_consume_token<Allowed_tokens_types...>()) {
             // parse next trem
-            auto right = parse_priority<operation_priority - 10>();
+            auto right = parse_priority(std::integral_constant<int, operation_priority - 10>{});
 
             // build tree and left rotate
-            left = std::make_unique<Binary_operation>(std::move(op), std::move(left), std::move(right));
+            left = std::make_unique<Binary_operation>(std::move(op.value()), std::move(left), std::move(right));
         }
         return left;
     }
 
     template <int operation_priority, Token_type... Allowed_tokens_types>
     std::unique_ptr<Expression> parse_right_associative_binary_operation_sequence() {
-std::print("parse_right_associative_binary_operation_sequence\n");
         // parse most left expr untill operator matches priority
-        auto left = parse_priority<operation_priority - 10>();
+        auto left = parse_priority(std::integral_constant<int, operation_priority - 10>{});
 
         if (auto op = try_consume_token<Allowed_tokens_types...>()) {
             // recursivly parse right expression for right-to-left associativity
             auto right =
                 parse_right_associative_binary_operation_sequence<operation_priority, Allowed_tokens_types...>();
 
-            left = std::make_unique<Binary_operation>(std::move(op), std::move(left), std::move(right));
+            left = std::make_unique<Binary_operation>(std::move(op.value()), std::move(left), std::move(right));
         }
         return left;
-    }
-
-    template <int priority>
-    std::unique_ptr<Expression> parse_priority() {
-        static_assert(false,
-                      "Invalid priority level in parse_priority\n"
-                      "Main expression parsing function (parse_priority) compiling error");
     }
 
     // priority_1              // highest priority
     // 	: identifier | string_literal | number_literal | char_literal
     //  | '(' expression ')'
     // 	;
-    template<>
-    std::unique_ptr<Expression> parse_priority<1>() {
-std::print("parse_priority<1>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 1>) {
         switch (current_token.type) {
             case TT::CHAR:
                 return std::make_unique<Char_literal>(consume_token<TT::CHAR>());
@@ -152,10 +152,8 @@ std::print("parse_priority<1>\n");
     // priority_10
     //   : priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<10>() {
-std::print("parse_priority<10>\n");
-        auto left = parse_priority<1>();
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 10>) {
+        auto left = parse_priority(std::integral_constant<int, 1>{});
 
         while (auto tok = try_consume_token<TT::PARENTHESES_OPEN, TT::SQUARE_BRACE_OPEN>()) {
             switch (tok->type) {
@@ -169,12 +167,12 @@ std::print("parse_priority<10>\n");
                                                               std::move(left), std::move(right));
                     left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE},
                                                              std::move(left));
+                    break;
                 }
                 case TT::PARENTHESES_OPEN: {
                     // function call
                     std::vector<std::unique_ptr<Expression>> args{};
 
-                    discard_token<TT::PARENTHESES_OPEN>();
                     if (not try_discard_token<TT::PARENTHESES_CLOSE>()) {
                         do {
                             args.push_back(parse_expression());
@@ -183,6 +181,7 @@ std::print("parse_priority<10>\n");
                     }
 
                     left = std::make_unique<Function_call>(std::move(left), std::move(args));
+                    break;
                 }
                 default:
                     throw std::logic_error("Unreachable state of parse_priority<10>");
@@ -196,30 +195,26 @@ std::print("parse_priority<10>\n");
     // 	 : priority_10
     // 	 | ('&' | ('@' type) | '-' | '!') priority_15
     // 	 ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<15>() {
-std::print("parse_priority<15>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 15>) {
         if (auto op = try_consume_token<TT::OP_ADRESS, TT::OP_DEREFERENCE, TT::OP_MINUS, TT::OP_NOT>()) {
             if (op->type == TT::OP_DEREFERENCE) {
                 auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
-                auto inner = parse_priority<15>();
+                auto inner = parse_priority(std::integral_constant<int, 15>{});
                 return std::make_unique<Type_operation>(std::move(op.value()), std::move(inner), std::move(type));
             } else {
-                auto inner = parse_priority<15>();
+                auto inner = parse_priority(std::integral_constant<int, 15>{});
                 return std::make_unique<Unary_operation>(std::move(op.value()), std::move(inner));
             }
         } else {
-            return parse_priority<10>();
+            return parse_priority(std::integral_constant<int, 10>{});
         }
     }
 
     // priority_20
     // 	 : priority_15 ('as' type)*
     // 	 ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<20>() {
-std::print("parse_priority<20>\n");
-        auto left = parse_priority<15>();
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 20>) {
+        auto left = parse_priority(std::integral_constant<int, 15>{});
         while (auto op = try_consume_token<TT::KEYWORD_AS>()) {
             auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
 
@@ -231,27 +226,21 @@ std::print("parse_priority<20>\n");
     // priority_30
     //   : priority_20 (('*' | '/' | '%') priority_20)*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<30>() {
-std::print("parse_priority<30>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 30>) {
         return parse_left_associative_binary_operation_sequence<30, TT::OP_MUL, TT::OP_DIV, TT::OP_MOD>();
     }
 
     // priority_40
     //   : priority_30 (('+' | '-') priority_30)*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<40>() {
-std::print("parse_priority<40>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 40>) {
         return parse_left_associative_binary_operation_sequence<40, TT::OP_PLUS, TT::OP_MINUS>();
     }
 
     // priority_50
     //   : priority_40 (('>' | '<' | '>=' | '<=' | '==' | '!=') priority_40)*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<50>() {
-std::print("parse_priority<50>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 50>) {
         return parse_left_associative_binary_operation_sequence<50, TT::OP_GREATER, TT::OP_GREATER_EQ, TT::OP_LESS,
                                                                 TT::OP_LESS_EQ, TT::OP_EQUAL, TT::OP_NOT_EQUAL>();
     }
@@ -259,33 +248,26 @@ std::print("parse_priority<50>\n");
     // priority_60
     //   : priority_50 ('&&' priority_50)*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<60>() {
-std::print("parse_priority<60>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 60>) {
         return parse_left_associative_binary_operation_sequence<60, TT::OP_AND>();
     }
 
     // priority_70
     //   : priority_60 ('||' priority_60)*
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<70>() {
-std::print("parse_priority<70>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 70>) {
         return parse_left_associative_binary_operation_sequence<70, TT::OP_OR>();
     }
 
     // priority_80
     //   : priority_70 ('=' priority_80)?
     //   ;
-    template <>
-    std::unique_ptr<Expression> parse_priority<80>() {
-std::print("parse_priority<80>\n");
+    std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 80>) {
         return parse_right_associative_binary_operation_sequence<80, TT::OP_ASSIGNMENT>();
     }
 
     std::unique_ptr<Expression> parse_expression() { 
-std::print("parse_expr\n");
-            return parse_priority<80>(); }
+            return parse_priority(std::integral_constant<int, 80>{}); }
 
     // variable_declaration
     //     : type identifier
@@ -330,7 +312,7 @@ std::print("parse_expr\n");
                     return s;
                 }
             default:
-                return std::make_unique<Expression_statement>(parse_expression());
+                return parse_expression_statement();
         }
     }
 
@@ -368,6 +350,7 @@ std::print("parse_expr\n");
     std::unique_ptr<Return_statement> parse_return_statement() {
         discard_token<TT::KEYWORD_RETURN>();
         auto expr = parse_expression();
+        discard_token<TT::SEMICOLON>();
         return std::make_unique<Return_statement>(std::move(expr));
     }
 
@@ -443,27 +426,12 @@ std::print("parse_expr\n");
                     break;
                 }
                 default:
-                    throw Parser_exception(std::format("Unexpected token: {}", current_token));
+                    throw Parser_exception(std::format("Unexpected token: {}", current_token), current_token.position);
             }
         }
 
         return std::make_unique<Programm>(std::move(functions), std::move(global_variables));
     }
-
-    public:
-    void gg666() {
-        parse_priority<80>();
-        parse_priority<70>();
-        parse_priority<60>();
-        parse_priority<50>();
-        parse_priority<40>();
-        parse_priority<30>();
-        parse_priority<20>();
-        parse_priority<15>();
-        parse_priority<10>();
-        parse_priority<1>();
-    }
-
 };
 
 template <next_token_callback<Token> Func>

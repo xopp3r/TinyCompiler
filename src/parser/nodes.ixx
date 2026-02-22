@@ -137,10 +137,11 @@ class String_literal final : public Primitive {
 
 class Char_literal final : public Primitive {
    public:
-    explicit Char_literal(Token literal) : Primitive(std::move(literal)), value(literal.lexeme.value().at(0)) {
-        if (std::size(literal.lexeme.value()) != 1) {
-            throw Parser_exception(std::format("Invalid char literal: {}", token));
+    explicit Char_literal(Token literal) : Primitive(std::move(literal)), value(0) {
+        if (std::size(token.lexeme.value()) != 1) {
+            throw Parser_exception(std::format("Invalid char literal: {}", token), token.position);
         }
+        value = literal.lexeme.value().at(0);
     };
 
     char value;

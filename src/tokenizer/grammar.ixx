@@ -1,6 +1,7 @@
 module;
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <string_view>
 #include <utility>
 
@@ -45,6 +46,7 @@ export enum class Parsing_state : unsigned char {
     AT,                  // @
     DOUBLE_AMPERSAND,
     DOUBLE_PIPE,
+    DOUBLE_EQUALS,
     LESS_EQ,
     GREATER_EQ,
     size
@@ -100,11 +102,17 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
 
         // chars and strings
         table[+Parsing_state::INITIAL][+Symbol_type::SINGLE_QUOTE] = Parsing_state::CHAR_LITERAL;
+        for (size_t i = 0; i < +Symbol_type::size; i++) {
+            table[+Parsing_state::CHAR_LITERAL][i] = Parsing_state::CHAR_LITERAL;
+        }
         // table[+Parsing_state::CHAR_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::CHAR_LITERAL_escaped;
         // ... TODO
         table[+Parsing_state::CHAR_LITERAL][+Symbol_type::SINGLE_QUOTE] = Parsing_state::CHAR_LITERAL_end;
 
         table[+Parsing_state::INITIAL][+Symbol_type::DOUBLE_QUOTE] = Parsing_state::STRING_LITERAL;
+        for (size_t i = 0; i < +Symbol_type::size; i++) {
+            table[+Parsing_state::STRING_LITERAL][i] = Parsing_state::STRING_LITERAL;
+        }
         // table[+Parsing_state::STRING_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::STRING_LITERAL_escaped;
         // ... TODO
         table[+Parsing_state::STRING_LITERAL][+Symbol_type::DOUBLE_QUOTE] = Parsing_state::STRING_LITERAL_end;
@@ -136,7 +144,6 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
         table[+Parsing_state::INITIAL][+Symbol_type::GREATER] = Parsing_state::GREATER;
         table[+Parsing_state::INITIAL][+Symbol_type::LESS] = Parsing_state::LESS;
         table[+Parsing_state::INITIAL][+Symbol_type::EXCLAMATION] = Parsing_state::EXCLAMATION;
-        table[+Parsing_state::INITIAL][+Symbol_type::EQUALS] = Parsing_state::EQUALS;
         table[+Parsing_state::INITIAL][+Symbol_type::AMPERSAND] = Parsing_state::AMPERSAND;
         table[+Parsing_state::INITIAL][+Symbol_type::PIPE] = Parsing_state::PIPE;
         table[+Parsing_state::INITIAL][+Symbol_type::AT] = Parsing_state::AT;
@@ -147,6 +154,9 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
 
         table[+Parsing_state::LESS][+Symbol_type::EQUALS] = Parsing_state::LESS_EQ;
         table[+Parsing_state::GREATER][+Symbol_type::EQUALS] = Parsing_state::GREATER_EQ;
+
+        table[+Parsing_state::INITIAL][+Symbol_type::EQUALS] = Parsing_state::EQUALS;
+        table[+Parsing_state::EQUALS][+Symbol_type::EQUALS] = Parsing_state::DOUBLE_EQUALS;
 
         return table;
     }();
@@ -228,6 +238,7 @@ export constexpr auto output_function = [](Parsing_state state) noexcept {
         table[+Parsing_state::LESS_EQ] = Token_type::OP_LESS_EQ;
         table[+Parsing_state::EXCLAMATION] = Token_type::OP_NOT;
         table[+Parsing_state::EQUALS] = Token_type::OP_ASSIGNMENT;
+        table[+Parsing_state::DOUBLE_EQUALS] = Token_type::OP_EQUAL;
         table[+Parsing_state::AMPERSAND] = Token_type::OP_ADRESS;
         table[+Parsing_state::DOUBLE_AMPERSAND] = Token_type::OP_AND;
         // table[+Parsing_state::PIPE] = Token_type::;
@@ -248,7 +259,7 @@ export constexpr auto check_for_keyword = [](std::string_view lexeme) {
             std::pair("uint"sv, Token_type::TYPE_UINT),        std::pair("ptr"sv, Token_type::TYPE_PTR),
             std::pair("void"sv, Token_type::TYPE_VOID),        std::pair("if"sv, Token_type::KEYWORD_IF),
             std::pair("else"sv, Token_type::KEYWORD_ELSE),     std::pair("while"sv, Token_type::KEYWORD_WHILE),
-            std::pair("break"sv, Token_type::KEYWORD_BREAK),   std::pair("function"sv, Token_type::KEYWORD_FUNCTION),
+            std::pair("break"sv, Token_type::KEYWORD_BREAK),   std::pair("fn"sv, Token_type::KEYWORD_FUNCTION),
             std::pair("extern"sv, Token_type::KEYWORD_EXTERN), std::pair("return"sv, Token_type::KEYWORD_RETURN),
             std::pair("export"sv, Token_type::KEYWORD_EXPORT), std::pair("as"sv, Token_type::KEYWORD_AS),
             std::pair("bool"sv, Token_type::TYPE_BOOL)};

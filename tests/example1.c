@@ -1,7 +1,4 @@
 
-
-int main() {
-
+fn int main() {
     return 69;
-
 }

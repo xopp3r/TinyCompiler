@@ -142,7 +142,7 @@ export constexpr Token create_token(Token_type type, std::string_view lexeme, Po
         case Token_type::CHAR:
             [[fallthrough]];
         case Token_type::STRING:
-            return Token{std::string{lexeme.subview(1, std::size(lexeme) - 1)}, pos, type};
+            return Token{std::string{lexeme.subview(1, std::size(lexeme) - 2)}, pos, type};
         default:
             return Token{std::nullopt, pos, type};
     }

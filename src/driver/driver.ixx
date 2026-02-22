@@ -23,7 +23,6 @@ namespace tc {
 AST build_ast(std::ranges::input_range auto text) {
     Tokenizer tokenizer{text, Parsing_dfa{}};
     Parser parser{[&tokenizer = tokenizer]() { return tokenizer.next_token(); }};
-    if (rand() == 666) parser.gg666();
     AST ast = parser.build_AST();
     return ast;
 }
@@ -41,17 +40,32 @@ export void compile(std::ranges::input_range auto text, bool verbose = false) {
     try {  // parse source code to build ast
         ast = build_ast(text);
     } catch (Parser_exception& e) {
-        std::println("Parsing error at {}:\n {}", e.where().value_or({}), e.what());
+        if (e.where()) {
+            const auto pos = e.where().value();
+            std::println("Parsing error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+        } else {
+            std::println("Parsing error:\n {}", e.what());
+        }
         std::exit(EXIT_FAILURE);
     }
 
     try {  // transformations over ast
         validate_and_annotate_ast(ast);
     } catch (Visibility_exception& e) {
-        std::println("Visibility error at {}:\n {}", e.where().value_or({}), e.what());
+        if (e.where()) {
+            const auto pos = e.where().value();
+            std::println("Visibility error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+        } else {
+            std::println("Visibility error:\n {}", e.what());
+        }
         std::exit(EXIT_FAILURE);
     } catch (Type_exception& e) {
-        std::println("Type error at {}:\n {}", e.where().value_or({}), e.what());
+        if (e.where()) {
+            const auto pos = e.where().value();
+            std::println("Type error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+        } else {
+            std::println("Type error:\n {}", e.what());
+        }
         std::exit(EXIT_FAILURE);
     }
 
@@ -61,7 +75,7 @@ export void compile(std::ranges::input_range auto text, bool verbose = false) {
             ast.root->accept(p);
         }
     } catch (std::exception& e) {
-        std::println("PRINT FAIL: {}", e.what());
+        std::println("Ast dump fail: {}", e.what());
         std::exit(EXIT_FAILURE);
     }
 }

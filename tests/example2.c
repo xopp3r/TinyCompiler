@@ -1,8 +1,6 @@
-// #include <stdio.h>
+extern fn void puts(){}
 
-int main() {
-    
-    printf("Hello World!\n");
-    
+fn int main() {    
+    puts("Hello World!\n");
     return 0;
 }
