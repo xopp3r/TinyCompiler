@@ -51,6 +51,8 @@ export class Type_checker final : public I_ast_visitor {
                 if (convertible_to(node.right_value->metadata.type, ctype)) {
                     add_implicit_conversion(node.right_value, ctype);
                     node.metadata = {ctype, Category::RVALUE};
+                } else {
+                    throw Type_exception(std::format("type {} of rhs of assignment {} incompatble with lhs type {}", node.right_value->metadata.type, node.operation, node.left_value->metadata.type), node.operation.position);
                 }
                 break;
             }
@@ -75,8 +77,11 @@ export class Type_checker final : public I_ast_visitor {
                 add_implicit_conversion(node.value, Type::BOOL);
                 node.metadata = {node.value->metadata.type, Category::RVALUE};
                 break;
-            default:
-                throw Type_exception(std::format("invalid binary operator {}", node.operation),
+            case Op_category::ADRESS:
+                node.metadata = {Type::PTR, Category::RVALUE};
+            break;
+                default:
+                throw Type_exception(std::format("invalid unary operator {}", node.operation),
                                      node.operation.position);
         }
 
@@ -114,7 +119,7 @@ export class Type_checker final : public I_ast_visitor {
                 void visit(Function_definition&) override {};
                 void visit(Programm&) override {};
             } driller{function};
-            node.function_address->accept(driller);
+            node.function_address->accept(driller); // to avoid dynamic_cast exceptions cost...
         }
 
         if (not function.has_value()) {
@@ -125,20 +130,24 @@ export class Type_checker final : public I_ast_visitor {
         const Function_definition& f = function->get();
         node.metadata = {type_mapping(f.return_type.type), Category::RVALUE};
 
-        if (node.arguments.size() != f.arguments.size())
+        if (f.var.linkage == Linkage_type::EXTERN) return; // skip args check for extern functions
+
+        if (node.arguments.size() != f.arguments.size()) {
             throw Type_exception(
                 std::format("wrong number of arguments to call '{}' function", f.var.name.content_str()),
                 current_function->get().return_type.position);
+        }
 
         for (size_t i = 0; i < f.arguments.size(); i++) {
             const auto expected = type_mapping(f.arguments[i]->type.type);
             const auto got = node.arguments[i]->metadata.type;
             if (convertible_to(got, expected)) {
                 add_implicit_conversion(node.arguments[i], expected);
-            } else
+            } else {
                 throw Type_exception(
                     std::format("wrong type of {}th argument to call '{}' function", i, f.var.name.content_str()),
                     current_function->get().return_type.position);
+            }
         }
     }
 
@@ -160,7 +169,7 @@ export class Type_checker final : public I_ast_visitor {
                 if (node.value->metadata.type != Type::PTR)
                     throw Type_exception(std::format("Can not dereference non-pointer value"), node.operation.position);
 
-                node.metadata = {t, Category::RVALUE};
+                node.metadata = {t, Category::LVALUE};
                 break;
             default:
                 throw Type_exception(std::format("invalid type operator {}", node.operation), node.operation.position);
@@ -170,11 +179,26 @@ export class Type_checker final : public I_ast_visitor {
     void visit(Integer_literal& node) override { node.metadata.type = Type::INT; }
     void visit(String_literal& node) override { node.metadata.type = Type::PTR; }
     void visit(Char_literal& node) override { node.metadata.type = Type::CHAR; }
-    void visit(Variable& node) override { node.metadata.type = type_mapping(node.source->get().type.type); }
+    void visit(Variable& node) override { node.metadata = {type_mapping(node.source->get().type.type), Category::LVALUE}; }
 
-    void visit(Expression_statement&) override {}
-    void visit(If_statement&) override {}
-    void visit(While_statement&) override {}
+    void visit(Expression_statement& node) override { node.expression->accept(*this); }
+    void visit(If_statement& node) override { 
+        node.condition->accept(*this);
+        add_implicit_conversion(node.condition, Type::BOOL);
+        for (auto&& s : node.if_body) {
+            s->accept(*this);
+        }
+        for (auto&& s : node.else_body) {
+            s->accept(*this);
+        }
+    }
+    void visit(While_statement& node) override {
+        node.condition->accept(*this);
+        add_implicit_conversion(node.condition, Type::BOOL);
+        for (auto&& s : node.body) {
+            s->accept(*this);
+        }
+    }
     void visit(Variable_declaration_statement&) override {}
 
     void visit(Return_statement& node) override {

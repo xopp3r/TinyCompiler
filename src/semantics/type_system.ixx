@@ -1,12 +1,15 @@
 module;
+#include <array>
 #include <cstddef>
+#include <format>
 #include <memory>
-#include <stdexcept>
 #include <utility>
 
 export module type_system;
 import ast;
 import token;
+import exceptions;
+
 
 export namespace tc {
 using Type = Expression_type;
@@ -26,36 +29,74 @@ unsigned char size_of_type(Expression_type t) {
     }
 };
 
-bool is_signed(Type t) { return t != Type::UINT; }
-
-// Type deduce_type(Expression_metadata& expr) {}
-
-void add_implicit_conversion(std::unique_ptr<Expression>& expr, Type type) {
-    if (expr->metadata.type == type) return;
-    auto tmp = std::move(expr);
-    expr = std::make_unique<Type_operation>(Token{{}, {}, Token_type::KEYWORD_AS}, std::move(tmp),
-                                            Token{{}, {}, type_mapping_reverse(type)});
-}
-
 bool convertible_to(Type from, Type to) {
-    if (from == to) return true;
-    if (is_signed(from) ^ is_signed(to)) return false;
-    if (from == Type::PTR ^ from == Type::PTR) return false;
-    if (from == Type::CHAR and to == Type::INT) return true;
-    if (from == Type::BOOL and to == Type::CHAR) return true;
-    if (from == Type::BOOL and to == Type::INT) return true;
-    throw std::logic_error("unexpected state 1");
+    constinit const static auto table = [] {
+        std::array<std::array<bool, +Type::size>, +Type::size> table{};
+        
+        for (size_t i = 0; i < +Type::size; i++) {
+            table[i][i] = true;
+        }
+
+        table[+Type::CHAR][+Type::INT] = true;
+        table[+Type::BOOL][+Type::INT] = true;
+        table[+Type::BOOL][+Type::CHAR] = true;
+        table[+Type::BOOL][+Type::UINT] = true;
+
+        table[+Type::INT][+Type::BOOL] = true;
+        table[+Type::INT][+Type::UINT] = true;
+        table[+Type::UINT][+Type::BOOL] = true;
+        table[+Type::UINT][+Type::INT] = true;
+        table[+Type::PTR][+Type::BOOL] = true;
+        table[+Type::CHAR][+Type::BOOL] = true;
+
+        return table;
+    } ();
+    
+    return table[+from][+to];
 }
 
 Type common_type(Type t1, Type t2) {
-    if (t1 == Type::INVALID or t2 == Type::INVALID) return Type::INVALID;
-    if (t1 == Type::VOID or t2 == Type::VOID) return Type::INVALID;
-    if (t1 == t2) return t1;
-    if (is_signed(t1) ^ is_signed(t2)) return Type::INVALID;
-    if (t1 == Type::PTR or t2 == Type::PTR) return Type::PTR;
-    if (t1 == Type::INT or t2 == Type::INT) return Type::INT;
-    if (t1 == Type::BOOL or t2 == Type::BOOL) return Type::BOOL;
-    throw std::logic_error("unexpected state 2");
+    constinit const static auto table = [] {
+        std::array<std::array<Type, +Type::size>, +Type::size> table{};
+        
+        for (size_t i = 0; i < +Type::size; i++) {
+            table[i][i] = static_cast<Type>(i);
+        }
+
+        table[+Type::INT][+Type::BOOL] = Type::INT;
+        table[+Type::INT][+Type::CHAR] = Type::INT;
+        table[+Type::UINT][+Type::BOOL] = Type::UINT;
+        table[+Type::CHAR][+Type::BOOL] = Type::CHAR;
+        table[+Type::PTR][+Type::INT] = Type::PTR;
+        table[+Type::PTR][+Type::UINT] = Type::PTR;
+        table[+Type::PTR][+Type::CHAR] = Type::PTR;
+        table[+Type::PTR][+Type::BOOL] = Type::PTR;
+
+        // transposd
+        table[+Type::BOOL][+Type::INT] = Type::INT;
+        table[+Type::CHAR][+Type::INT] = Type::INT;
+        table[+Type::BOOL][+Type::UINT] = Type::UINT;
+        table[+Type::BOOL][+Type::CHAR] = Type::CHAR;
+        table[+Type::INT][+Type::PTR] = Type::PTR;
+        table[+Type::UINT][+Type::PTR] = Type::PTR;
+        table[+Type::CHAR][+Type::PTR] = Type::PTR;
+        table[+Type::BOOL][+Type::PTR] = Type::PTR;
+
+        return table;
+    } ();
+
+    return table[+t1][+t2];
+}
+
+void add_implicit_conversion(std::unique_ptr<Expression>& expr, Type type) {
+    if (expr->metadata.type == type) return;
+    if (expr->metadata.type == Type::VOID) {
+        throw Type_exception{std::format("no conversion from void to {}", type)};
+    }
+    auto tmp = std::move(expr);
+    expr = std::make_unique<Type_operation>(Token{{}, {}, Token_type::KEYWORD_AS}, std::move(tmp),
+                                            Token{{}, {}, type_mapping_reverse(type)});
+    expr->metadata = {type, Expression_category::RVALUE};
 }
 
 }  // namespace tc

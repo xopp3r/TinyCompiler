@@ -23,6 +23,8 @@ export constexpr Linkage_type linkage_mapping(Token_type t) noexcept {
 
 export enum class Expression_type : unsigned char { INVALID, UINT, INT, CHAR, PTR, VOID, BOOL, size };
 
+export constexpr size_t operator+(Expression_type e) { return static_cast<size_t>(e); }
+
 export constexpr Expression_type type_mapping(Token_type t) noexcept {
     switch (t) {
         case Token_type::TYPE_UINT:

@@ -12,6 +12,7 @@ export enum class Op_category : unsigned char {
     ORDERING,
     DEREFERENCE,
     ASSIGNMENT,
+    ADRESS,
     CAST,
     size
 };
@@ -38,7 +39,7 @@ export Op_category op_category_mapping(Token_type t) {
         case Token_type::OP_ASSIGNMENT:
             return Op_category::ASSIGNMENT;
         case Token_type::OP_ADRESS:
-            return Op_category::ASSIGNMENT;
+            return Op_category::ADRESS;
         case Token_type::OP_DEREFERENCE:
             return Op_category::DEREFERENCE;
         case Token_type::KEYWORD_AS:

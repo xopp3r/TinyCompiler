@@ -17,7 +17,7 @@ fn uint fibb(uint n) {
         prev = curr;
         curr = prev + tmp;
     }
-
+    
     return curr;
 }
 
