@@ -107,34 +107,34 @@ export class Type_checker final : public I_ast_visitor {
             struct S : I_ast_visitor {
                 std::optional<Func_ref>& t;
                 S(std::optional<Func_ref>& t) : t(t) {}
-                void* visit(Binary_operation&) override {};
-                void* visit(Unary_operation&) override {};
-                void* visit(Type_operation&) override {};
-                void* visit(Function_call&) override {};
-                void* visit(Integer_literal&) override {};
-                void* visit(String_literal&) override {};
-                void* visit(Char_literal&) override {};
-                void* visit(Variable& node) override { t = node.source->get().if_function; };
-                void* visit(Expression_statement&) override {};
-                void* visit(Variable_declaration_statement&) override {};
-                void* visit(If_statement&) override {};
-                void* visit(While_statement&) override {};
-                void* visit(Return_statement&) override {};
-                void* visit(Function_definition&) override {};
-                void* visit(Programm&) override {};
+                void* visit(Binary_operation&) override { return nullptr; };
+                void* visit(Unary_operation&) override { return nullptr; };
+                void* visit(Type_operation&) override { return nullptr; };
+                void* visit(Function_call&) override { return nullptr; };
+                void* visit(Integer_literal&) override { return nullptr; };
+                void* visit(String_literal&) override { return nullptr; };
+                void* visit(Char_literal&) override { return nullptr; };
+                void* visit(Variable& node) override { t = node.source->get().if_function; return nullptr; };
+                void* visit(Expression_statement&) override { return nullptr; };
+                void* visit(Variable_declaration_statement&) override { return nullptr; };
+                void* visit(If_statement&) override { return nullptr; };
+                void* visit(While_statement&) override { return nullptr; };
+                void* visit(Return_statement&) override { return nullptr; };
+                void* visit(Function_definition&) override { return nullptr; };
+                void* visit(Programm&) override { return nullptr; };
             } driller{function};
             node.function_address->accept(driller);  // to avoid dynamic_cast exceptions cost...
         }
 
         if (not function.has_value()) {
             node.metadata = {Type::INT, Category::RVALUE};
-            return;
+            return nullptr;
         }
 
         const Function_definition& f = function->get();
         node.metadata = {type_mapping(f.return_type.type), Category::RVALUE};
 
-        if (f.var.linkage == Linkage_type::EXTERN) return;  // skip args check for extern functions
+        if (f.var.linkage == Linkage_type::EXTERN) return nullptr;  // skip args check for extern functions
 
         if (node.arguments.size() != f.arguments.size()) {
             throw Type_exception(

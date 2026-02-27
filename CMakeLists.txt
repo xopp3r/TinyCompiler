@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(TinyCompiler LANGUAGES CXX)
+project(TinyCompiler LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES 1)
+
+
+find_package(zstd CONFIG REQUIRED)
+find_package(LLVM REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 add_executable(main)
 
@@ -69,5 +75,14 @@ target_sources(main
       src/tokenizer/parsing_dfa.ixx
       src/tokenizer/grammar.ixx
       src/tokenizer/token.ixx
+
+      src/codegen/codegen.ixx
 )
 
+llvm_map_components_to_libnames(llvm_libs support core codegen irreader)
+
+target_compile_features(main PRIVATE cxx_std_17)
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(main SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
+target_link_libraries(main ${llvm_libs})

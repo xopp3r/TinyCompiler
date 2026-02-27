@@ -69,40 +69,35 @@ export class AST_printer final : public I_ast_visitor {
         vec.back()->accept(*this);
 
         prefix.resize(--depth + 1);  // )
-        return nullptr;
     }
 };
 
-void* AST_printer::PrintProgramASTasHierarcy(Programm& node) {
+void AST_printer::PrintProgramASTasHierarcy(Programm& node) {
     prefix.push_back(std::string_view(reinterpret_cast<const char*>(Nbar.data())));  // set first row to empty
     visit(node);
     depth = 0;
     prefix.clear();
     tempPrefixIndex = 0;
-    return nullptr;
 }
 
-void* AST_printer::setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix) {
+void AST_printer::setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix) {
     tempPrefixIndex = depth;
     afterPrefix = expiritionPrefix;
     prefix.at(depth) = std::string_view(reinterpret_cast<const char*>(tempPrefix.data()));
-    return nullptr;
 }
 
-void* AST_printer::updateTempPrefix() {
+void AST_printer::updateTempPrefix() {
     if (tempPrefixIndex != 0) {
         prefix.at(tempPrefixIndex) = std::string_view(reinterpret_cast<const char*>(afterPrefix.data()));
         tempPrefixIndex = 0;
     }
-    return nullptr;
 }
 
-void* AST_printer::print(const std::string_view& str) {
+void AST_printer::print(const std::string_view& str) {
     for (const auto& pref : prefix) std::cout << pref;
     std::cout << str << std::endl;
 
     updateTempPrefix();
-    return nullptr;
 }
 
 void* AST_printer::visit(Binary_operation& node) {
@@ -140,8 +135,10 @@ void* AST_printer::visit(Function_call& node) {
     return nullptr;
 }
 
-void* AST_printer::visit(Integer_literal& node) { print("num(" + std::to_string(node.value) + ")"); 
-return nullptr;}
+void* AST_printer::visit(Integer_literal& node) {
+    print("num(" + std::to_string(node.value) + ")");
+    return nullptr;
+}
 
 void* AST_printer::visit(String_literal& node) {
     print("str(" + std::string(node.token.content_str()) + ")");
