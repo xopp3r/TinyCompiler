@@ -91,6 +91,7 @@ class Parser {
         static_assert(false,
                       "Invalid priority level in parse_priority\n"
                       "Main expression parsing function (parse_priority) compiling error");
+        return nullptr;
     }
 
     template <int operation_priority, Token_type... Allowed_tokens_types>

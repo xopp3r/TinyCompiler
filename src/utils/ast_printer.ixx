@@ -2,6 +2,7 @@ module;
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #define SUBDIR(...)             \
@@ -19,6 +20,12 @@ constexpr auto Vbar = std::u8string_view((u8"│ "));
 constexpr auto Cbar = std::u8string_view((u8"├─"));
 constexpr auto Ebar = std::u8string_view((u8"└─"));
 constexpr auto Nbar = std::u8string_view((u8"  "));
+
+namespace {
+    std::string constexpr operator+(std::string s, std::string_view sw) {
+        return s + std::string{sw};
+    }
+}
 
 export class AST_printer final : public I_ast_visitor {
    public:

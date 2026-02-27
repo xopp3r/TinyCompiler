@@ -3,7 +3,7 @@ module;
 #include <array>
 #include <cstddef>
 #include <string_view>
-#include <utility>
+#include <functional>
 
 export module parsing_dfa:grammar;
 import token;
@@ -86,13 +86,11 @@ export enum class Symbol_type : unsigned char {
 constexpr size_t operator+(Symbol_type s) { return static_cast<size_t>(s); }
 constexpr size_t operator+(Parsing_state s) { return static_cast<size_t>(s); }
 
-namespace {
 template <std::ranges::random_access_range Range, typename T, typename Proj>
 constexpr auto binary_search_ranges(Range&& range, const T& value, Proj&& proj = {}) {
     const auto it = std::ranges::lower_bound(range, value, {}, proj);
     return (it != std::ranges::end(range) && std::invoke(proj, *it) == value) ? it : std::ranges::end(range);
 }
-}  // namespace
 
 export constexpr auto transition_function = [](Parsing_state state, Symbol_type sym) noexcept {
     constinit static const auto translation_table = []() {

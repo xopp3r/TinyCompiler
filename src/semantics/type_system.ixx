@@ -13,6 +13,7 @@ import exceptions;
 export namespace tc {
 using Type = Expression_type;
 using Metadata = Expression_metadata;
+using Category = Expression_category;
 
 unsigned char size_of_type(Expression_type t) {
     switch (t) {

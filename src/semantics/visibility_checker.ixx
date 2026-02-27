@@ -12,7 +12,6 @@ import ast;
 import exceptions;
 
 namespace tc {
-using Var_ref = std::reference_wrapper<Variable_declaration_statement>;
 
 export class Visibility_checker final : public I_ast_visitor {
    private:
@@ -55,10 +54,10 @@ export class Visibility_checker final : public I_ast_visitor {
     void* visit(Char_literal&) override { return nullptr; }
 
     void* visit(Variable& node) override {
-        if (auto ref = resolve_name(node.token.lexeme.value())) {
+        if (auto ref = resolve_name(node.token.content_str())) {
             node.source = ref;
         } else {
-            throw Visibility_exception(std::format("Reference to undefined symbol {}", node.token.lexeme.value()),
+            throw Visibility_exception(std::format("Reference to undefined symbol {}", node.token.content_str()),
                                        node.token.position);
         }
         return nullptr;
@@ -70,6 +69,9 @@ export class Visibility_checker final : public I_ast_visitor {
     }
 
     void* visit(Variable_declaration_statement& node) override {
+        if (resolve_name(node.name.content_str())) 
+            throw Visibility_exception(std::format("Name {} already exists", node.name.content_str()), node.name.position);
+        
         visible_vars.back().push_back(std::ref(node));
         return nullptr;
     }

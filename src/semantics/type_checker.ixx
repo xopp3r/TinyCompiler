@@ -11,9 +11,6 @@ import exceptions;
 import operation_categorires;
 
 namespace tc {
-using Type = Expression_type;
-using Category = Expression_category;
-using Func_ref = std::reference_wrapper<Function_definition>;
 
 export class Type_checker final : public I_ast_visitor {
    public:

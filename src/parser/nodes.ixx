@@ -12,8 +12,8 @@ import exceptions;
 import token;
 
 export namespace tc {
-
 using Var_ref = std::reference_wrapper<Variable_declaration_statement>;
+using Func_ref = std::reference_wrapper<Function_definition>;
 
 // Base class for every node in ast
 class Node {
@@ -181,7 +181,7 @@ class Variable_declaration_statement final : public Statement {
 
     Token type;
     Token name;
-    std::optional<std::reference_wrapper<Function_definition>> if_function{};
+    std::optional<Func_ref> if_function{};
     Linkage_type linkage;
 
     void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }

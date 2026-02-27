@@ -8,6 +8,7 @@ module;
 #include <ranges>
 #include <string>
 #include <utility>
+#include <functional>
 
 export module tokenizer;
 import position;

@@ -3,7 +3,7 @@ module;
 #include <string_view>
 
 export module parsing_dfa;
-import :grammar;
+export import :grammar;
 import token;
 import DFA;
 
