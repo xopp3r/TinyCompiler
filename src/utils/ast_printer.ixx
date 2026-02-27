@@ -73,7 +73,7 @@ export class AST_printer final : public I_ast_visitor {
     }
 };
 
-void AST_printer::PrintProgramASTasHierarcy(Programm& node) {
+void* AST_printer::PrintProgramASTasHierarcy(Programm& node) {
     prefix.push_back(std::string_view(reinterpret_cast<const char*>(Nbar.data())));  // set first row to empty
     visit(node);
     depth = 0;
@@ -82,14 +82,14 @@ void AST_printer::PrintProgramASTasHierarcy(Programm& node) {
     return nullptr;
 }
 
-void AST_printer::setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix) {
+void* AST_printer::setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix) {
     tempPrefixIndex = depth;
     afterPrefix = expiritionPrefix;
     prefix.at(depth) = std::string_view(reinterpret_cast<const char*>(tempPrefix.data()));
     return nullptr;
 }
 
-void AST_printer::updateTempPrefix() {
+void* AST_printer::updateTempPrefix() {
     if (tempPrefixIndex != 0) {
         prefix.at(tempPrefixIndex) = std::string_view(reinterpret_cast<const char*>(afterPrefix.data()));
         tempPrefixIndex = 0;
@@ -97,7 +97,7 @@ void AST_printer::updateTempPrefix() {
     return nullptr;
 }
 
-void AST_printer::print(const std::string_view& str) {
+void* AST_printer::print(const std::string_view& str) {
     for (const auto& pref : prefix) std::cout << pref;
     std::cout << str << std::endl;
 
@@ -105,20 +105,20 @@ void AST_printer::print(const std::string_view& str) {
     return nullptr;
 }
 
-void AST_printer::visit(Binary_operation& node) {
+void* AST_printer::visit(Binary_operation& node) {
     print(node.operation.content_str());
     SUBDIR(setTempPrefix(Cbar, Vbar); node.left_value->accept(*this); setTempPrefix(Ebar, Nbar);
            node.right_value->accept(*this);)
     return nullptr;
 }
 
-void AST_printer::visit(Unary_operation& node) {
+void* AST_printer::visit(Unary_operation& node) {
     print(node.operation.content_str());
     SUBDIR(setTempPrefix(Ebar, Nbar); node.value->accept(*this);)
     return nullptr;
 }
 
-void AST_printer::visit(Type_operation& node) {
+void* AST_printer::visit(Type_operation& node) {
     if (node.operation.type == Token_type::KEYWORD_AS) {
         print(std::string{"casted as "} + node.type.content_str());
     } else {
@@ -128,7 +128,7 @@ void AST_printer::visit(Type_operation& node) {
     return nullptr;
 }
 
-void AST_printer::visit(Function_call& node) {
+void* AST_printer::visit(Function_call& node) {
     print("FunctionCall");
     SUBDIR(setTempPrefix(Cbar, Vbar); print("adress");
            SUBDIR(setTempPrefix(Ebar, Nbar); node.function_address->accept(*this);)
@@ -140,36 +140,36 @@ void AST_printer::visit(Function_call& node) {
     return nullptr;
 }
 
-void AST_printer::visit(Integer_literal& node) { print("num(" + std::to_string(node.value) + ")"); }
-return nullptr;
+void* AST_printer::visit(Integer_literal& node) { print("num(" + std::to_string(node.value) + ")"); 
+return nullptr;}
 
-void AST_printer::visit(String_literal& node) {
+void* AST_printer::visit(String_literal& node) {
     print("str(" + std::string(node.token.content_str()) + ")");
     return nullptr;
 }
 
-void AST_printer::visit(Char_literal& node) {
+void* AST_printer::visit(Char_literal& node) {
     print("char(" + std::to_string(node.value) + ")");
     return nullptr;
 }
 
-void AST_printer::visit(Variable& node) {
+void* AST_printer::visit(Variable& node) {
     print("var(" + std::string(node.token.content_str()) + ")");
     return nullptr;
 }
 
-void AST_printer::visit(Expression_statement& node) {
+void* AST_printer::visit(Expression_statement& node) {
     print("Statement");
     SUBDIR(setTempPrefix(Ebar, Nbar); node.expression->accept(*this);)
     return nullptr;
 }
 
-void AST_printer::visit(Variable_declaration_statement& node) {
+void* AST_printer::visit(Variable_declaration_statement& node) {
     print(std::string(node.type.content_str()) + " " + std::string(node.name.content_str()));
     return nullptr;
 }
 
-void AST_printer::visit(If_statement& node) {
+void* AST_printer::visit(If_statement& node) {
     print("If");
     SUBDIR(setTempPrefix(Cbar, Vbar); print("condition");
            SUBDIR(setTempPrefix(Ebar, Nbar); node.condition->accept(*this);)
@@ -183,7 +183,7 @@ void AST_printer::visit(If_statement& node) {
     return nullptr;
 }
 
-void AST_printer::visit(While_statement& node) {
+void* AST_printer::visit(While_statement& node) {
     print("While");
     SUBDIR(
 
@@ -194,13 +194,13 @@ void AST_printer::visit(While_statement& node) {
     return nullptr;
 }
 
-void AST_printer::visit(Return_statement& node) {
+void* AST_printer::visit(Return_statement& node) {
     print("Return");
     SUBDIR(setTempPrefix(Ebar, Nbar); node.expression->accept(*this);)
     return nullptr;
 }
 
-void AST_printer::visit(Function_definition& node) {
+void* AST_printer::visit(Function_definition& node) {
     print("Function " + std::string(node.return_type.content_str()) + " " + std::string(node.var.name.content_str()));
     SUBDIR(
 
@@ -214,7 +214,7 @@ void AST_printer::visit(Function_definition& node) {
     return nullptr;
 }
 
-void AST_printer::visit(Programm& node) {
+void* AST_printer::visit(Programm& node) {
     print("Programm");
     SUBDIR(
 
