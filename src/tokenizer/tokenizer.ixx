@@ -96,7 +96,7 @@ Token Tokenizer<Iter, Sentinel, Parser>::next_token() {
         }
 
         buffer += eat();
-        
+
         if (auto type = parser.step(c)) {
             matched_token.size = std::size(buffer);
             matched_token.type = *type;

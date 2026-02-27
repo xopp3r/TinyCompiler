@@ -27,39 +27,54 @@ export class Visibility_checker final : public I_ast_visitor {
     }
 
    public:
-    void visit(Binary_operation& node) override {
+    void* visit(Binary_operation& node) override {
         node.left_value->accept(*this);
         node.right_value->accept(*this);
+        return nullptr;
     }
 
-    void visit(Unary_operation& node) override { node.value->accept(*this); }
-    void visit(Type_operation& node) override { node.value->accept(*this); }
+    void* visit(Unary_operation& node) override {
+        node.value->accept(*this);
+        return nullptr;
+    }
+    void* visit(Type_operation& node) override {
+        return nullptr;
+        node.value->accept(*this);
+    }
 
-    void visit(Function_call& node) override {
+    void* visit(Function_call& node) override {
         node.function_address->accept(*this);
         for (auto&& arg : node.arguments) {
             arg->accept(*this);
         }
+        return nullptr;
     }
 
-    void visit(Integer_literal&) override {}
-    void visit(String_literal&) override {}
-    void visit(Char_literal&) override {}
+    void* visit(Integer_literal&) override { return nullptr; }
+    void* visit(String_literal&) override { return nullptr; }
+    void* visit(Char_literal&) override { return nullptr; }
 
-    void visit(Variable& node) override {
+    void* visit(Variable& node) override {
         if (auto ref = resolve_name(node.token.lexeme.value())) {
             node.source = ref;
         } else {
             throw Visibility_exception(std::format("Reference to undefined symbol {}", node.token.lexeme.value()),
                                        node.token.position);
         }
+        return nullptr;
     }
 
-    void visit(Expression_statement& node) override { node.expression->accept(*this); }
+    void* visit(Expression_statement& node) override {
+        node.expression->accept(*this);
+        return nullptr;
+    }
 
-    void visit(Variable_declaration_statement& node) override { visible_vars.back().push_back(std::ref(node)); }
+    void* visit(Variable_declaration_statement& node) override {
+        visible_vars.back().push_back(std::ref(node));
+        return nullptr;
+    }
 
-    void visit(If_statement& node) override {
+    void* visit(If_statement& node) override {
         node.condition->accept(*this);
         visible_vars.push_back({});
         for (auto&& stmt : node.if_body) {
@@ -71,20 +86,25 @@ export class Visibility_checker final : public I_ast_visitor {
             stmt->accept(*this);
         }
         visible_vars.pop_back();
+        return nullptr;
     }
 
-    void visit(While_statement& node) override {
+    void* visit(While_statement& node) override {
         node.condition->accept(*this);
         visible_vars.push_back({});
         for (auto&& stmt : node.body) {
             stmt->accept(*this);
         }
         visible_vars.pop_back();
+        return nullptr;
     }
 
-    void visit(Return_statement& node) override { node.expression->accept(*this); }
+    void* visit(Return_statement& node) override {
+        node.expression->accept(*this);
+        return nullptr;
+    }
 
-    void visit(Function_definition& node) override {
+    void* visit(Function_definition& node) override {
         node.var.accept(*this);
         visible_vars.push_back({});
         for (auto&& arg : node.arguments) {
@@ -94,9 +114,10 @@ export class Visibility_checker final : public I_ast_visitor {
             stmt->accept(*this);
         }
         visible_vars.pop_back();
+        return nullptr;
     }
 
-    void visit(Programm& node) override {
+    void* visit(Programm& node) override {
         visible_vars.clear();
         visible_vars.push_back({});
 
@@ -108,6 +129,7 @@ export class Visibility_checker final : public I_ast_visitor {
         }
 
         visible_vars.pop_back();
+        return nullptr;
     }
 
    private:

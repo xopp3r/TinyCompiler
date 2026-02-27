@@ -36,21 +36,21 @@ export class AST_printer final : public I_ast_visitor {
     void print(const std::string_view& str);
     void printVec(const std::vector<std::unique_ptr<Node>>& vec);
 
-    void visit(Binary_operation& node) override;
-    void visit(Unary_operation& node) override;
-    void visit(Function_call& node) override;
-    void visit(Type_operation& node) override;
-    void visit(Integer_literal& node) override;
-    void visit(String_literal& node) override;
-    void visit(Char_literal& node) override;
-    void visit(Variable& node) override;
-    void visit(Expression_statement& node) override;
-    void visit(Variable_declaration_statement& node) override;
-    void visit(If_statement& node) override;
-    void visit(While_statement& node) override;
-    void visit(Return_statement& node) override;
-    void visit(Function_definition& node) override;
-    void visit(Programm& node) override;
+    void* visit(Binary_operation& node) override;
+    void* visit(Unary_operation& node) override;
+    void* visit(Function_call& node) override;
+    void* visit(Type_operation& node) override;
+    void* visit(Integer_literal& node) override;
+    void* visit(String_literal& node) override;
+    void* visit(Char_literal& node) override;
+    void* visit(Variable& node) override;
+    void* visit(Expression_statement& node) override;
+    void* visit(Variable_declaration_statement& node) override;
+    void* visit(If_statement& node) override;
+    void* visit(While_statement& node) override;
+    void* visit(Return_statement& node) override;
+    void* visit(Function_definition& node) override;
+    void* visit(Programm& node) override;
 
     template <typename T>
         requires std::derived_from<T, Node>
@@ -69,6 +69,7 @@ export class AST_printer final : public I_ast_visitor {
         vec.back()->accept(*this);
 
         prefix.resize(--depth + 1);  // )
+        return nullptr;
     }
 };
 
@@ -78,12 +79,14 @@ void AST_printer::PrintProgramASTasHierarcy(Programm& node) {
     depth = 0;
     prefix.clear();
     tempPrefixIndex = 0;
+    return nullptr;
 }
 
 void AST_printer::setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix) {
     tempPrefixIndex = depth;
     afterPrefix = expiritionPrefix;
     prefix.at(depth) = std::string_view(reinterpret_cast<const char*>(tempPrefix.data()));
+    return nullptr;
 }
 
 void AST_printer::updateTempPrefix() {
@@ -91,6 +94,7 @@ void AST_printer::updateTempPrefix() {
         prefix.at(tempPrefixIndex) = std::string_view(reinterpret_cast<const char*>(afterPrefix.data()));
         tempPrefixIndex = 0;
     }
+    return nullptr;
 }
 
 void AST_printer::print(const std::string_view& str) {
@@ -98,17 +102,20 @@ void AST_printer::print(const std::string_view& str) {
     std::cout << str << std::endl;
 
     updateTempPrefix();
+    return nullptr;
 }
 
 void AST_printer::visit(Binary_operation& node) {
     print(node.operation.content_str());
     SUBDIR(setTempPrefix(Cbar, Vbar); node.left_value->accept(*this); setTempPrefix(Ebar, Nbar);
            node.right_value->accept(*this);)
+    return nullptr;
 }
 
 void AST_printer::visit(Unary_operation& node) {
     print(node.operation.content_str());
     SUBDIR(setTempPrefix(Ebar, Nbar); node.value->accept(*this);)
+    return nullptr;
 }
 
 void AST_printer::visit(Type_operation& node) {
@@ -118,6 +125,7 @@ void AST_printer::visit(Type_operation& node) {
         print(std::string{"@ as "} + node.type.content_str());
     }
     SUBDIR(setTempPrefix(Ebar, Nbar); node.value->accept(*this);)
+    return nullptr;
 }
 
 void AST_printer::visit(Function_call& node) {
@@ -129,23 +137,36 @@ void AST_printer::visit(Function_call& node) {
            print("args " + std::to_string(node.arguments.size())); SUBDIR(printVec(node.arguments);)
 
     )
+    return nullptr;
 }
 
 void AST_printer::visit(Integer_literal& node) { print("num(" + std::to_string(node.value) + ")"); }
+return nullptr;
 
-void AST_printer::visit(String_literal& node) { print("str(" + std::string(node.token.content_str()) + ")"); }
+void AST_printer::visit(String_literal& node) {
+    print("str(" + std::string(node.token.content_str()) + ")");
+    return nullptr;
+}
 
-void AST_printer::visit(Char_literal& node) { print("char(" + std::to_string(node.value) + ")"); }
+void AST_printer::visit(Char_literal& node) {
+    print("char(" + std::to_string(node.value) + ")");
+    return nullptr;
+}
 
-void AST_printer::visit(Variable& node) { print("var(" + std::string(node.token.content_str()) + ")"); }
+void AST_printer::visit(Variable& node) {
+    print("var(" + std::string(node.token.content_str()) + ")");
+    return nullptr;
+}
 
 void AST_printer::visit(Expression_statement& node) {
     print("Statement");
     SUBDIR(setTempPrefix(Ebar, Nbar); node.expression->accept(*this);)
+    return nullptr;
 }
 
 void AST_printer::visit(Variable_declaration_statement& node) {
     print(std::string(node.type.content_str()) + " " + std::string(node.name.content_str()));
+    return nullptr;
 }
 
 void AST_printer::visit(If_statement& node) {
@@ -159,6 +180,7 @@ void AST_printer::visit(If_statement& node) {
            print("elseBody " + std::to_string(node.else_body.size())); SUBDIR(printVec(node.else_body);)
 
     )
+    return nullptr;
 }
 
 void AST_printer::visit(While_statement& node) {
@@ -169,11 +191,13 @@ void AST_printer::visit(While_statement& node) {
 
             setTempPrefix(Ebar, Nbar);
         print("body " + std::to_string(node.body.size())); SUBDIR(printVec(node.body);))
+    return nullptr;
 }
 
 void AST_printer::visit(Return_statement& node) {
     print("Return");
     SUBDIR(setTempPrefix(Ebar, Nbar); node.expression->accept(*this);)
+    return nullptr;
 }
 
 void AST_printer::visit(Function_definition& node) {
@@ -187,6 +211,7 @@ void AST_printer::visit(Function_definition& node) {
         print("body " + std::to_string(node.body.size())); printVec(node.body);
 
     )
+    return nullptr;
 }
 
 void AST_printer::visit(Programm& node) {
@@ -200,6 +225,7 @@ void AST_printer::visit(Programm& node) {
         printVec(node.functions);
 
     )
+    return nullptr;
 }
 
 }  // namespace tc

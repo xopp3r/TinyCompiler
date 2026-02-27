@@ -15,7 +15,6 @@ import type_checker;
 import visibility_checker;
 import ast_printer;
 
-
 import ast;
 
 namespace tc {

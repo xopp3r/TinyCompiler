@@ -10,7 +10,6 @@ import ast;
 import token;
 import exceptions;
 
-
 export namespace tc {
 using Type = Expression_type;
 using Metadata = Expression_metadata;
@@ -32,7 +31,7 @@ unsigned char size_of_type(Expression_type t) {
 bool convertible_to(Type from, Type to) {
     constinit const static auto table = [] {
         std::array<std::array<bool, +Type::size>, +Type::size> table{};
-        
+
         for (size_t i = 0; i < +Type::size; i++) {
             table[i][i] = true;
         }
@@ -50,15 +49,15 @@ bool convertible_to(Type from, Type to) {
         table[+Type::CHAR][+Type::BOOL] = true;
 
         return table;
-    } ();
-    
+    }();
+
     return table[+from][+to];
 }
 
 Type common_type(Type t1, Type t2) {
     constinit const static auto table = [] {
         std::array<std::array<Type, +Type::size>, +Type::size> table{};
-        
+
         for (size_t i = 0; i < +Type::size; i++) {
             table[i][i] = static_cast<Type>(i);
         }
@@ -83,7 +82,7 @@ Type common_type(Type t1, Type t2) {
         table[+Type::BOOL][+Type::PTR] = Type::PTR;
 
         return table;
-    } ();
+    }();
 
     return table[+t1][+t2];
 }

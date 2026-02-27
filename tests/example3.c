@@ -3,9 +3,10 @@ fn int main(int argc, ptr argv) {
     char var2;
     var1 = var2;
     if (var1){
-        while (var2){
+        int var1;
+        while (var1){
         }
     } else {
-        if (var2) {}
+        if (var1) {}
     }
 }

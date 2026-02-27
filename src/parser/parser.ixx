@@ -19,7 +19,6 @@ import exceptions;
 import token;
 import ast;
 
-
 namespace tc {
 using TT = Token_type;
 
@@ -40,7 +39,6 @@ class Parser {
     }
 
     AST build_AST();
-
 
    private:
     Token current_token;
@@ -63,7 +61,8 @@ class Parser {
     template <Token_type... types>
     void discard_token() {
         if (not try_discard_token<types...>()) {
-            auto fmt = std::format("Unexpected token: {}, type '{}' do not match any of allowed types: ", current_token, current_token.type_str());
+            auto fmt = std::format("Unexpected token: {}, type '{}' do not match any of allowed types: ", current_token,
+                                   current_token.type_str());
             fmt = (fmt + ... + (std::string{type_str(types)} + " or "));
             fmt.resize(std::size(fmt) - 4);
             throw Parser_exception(std::move(fmt), current_token.position);
@@ -96,7 +95,8 @@ class Parser {
 
     template <int operation_priority, Token_type... Allowed_tokens_types>
     std::unique_ptr<Expression> parse_left_associative_binary_operation_sequence() {
-        auto left = parse_priority(std::integral_constant<int, operation_priority - 10>{});  // parse higher priority expressions first
+        auto left = parse_priority(
+            std::integral_constant<int, operation_priority - 10>{});  // parse higher priority expressions first
 
         // while priority of current operation match
         while (auto op = try_consume_token<Allowed_tokens_types...>()) {
@@ -266,8 +266,7 @@ class Parser {
         return parse_right_associative_binary_operation_sequence<80, TT::OP_ASSIGNMENT>();
     }
 
-    std::unique_ptr<Expression> parse_expression() { 
-            return parse_priority(std::integral_constant<int, 80>{}); }
+    std::unique_ptr<Expression> parse_expression() { return parse_priority(std::integral_constant<int, 80>{}); }
 
     // variable_declaration
     //     : type identifier
@@ -307,10 +306,10 @@ class Parser {
             case TT::KEYWORD_RETURN:
                 return parse_return_statement();
             case EXPAND_KEYWORDS_TOKENS(: case): {
-                    auto s = parse_variable_declaration_statement();
-                    discard_token<TT::SEMICOLON>();
-                    return s;
-                }
+                auto s = parse_variable_declaration_statement();
+                discard_token<TT::SEMICOLON>();
+                return s;
+            }
             default:
                 return parse_expression_statement();
         }
