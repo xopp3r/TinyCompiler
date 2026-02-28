@@ -15,7 +15,7 @@ using Type = Expression_type;
 using Metadata = Expression_metadata;
 using Category = Expression_category;
 
-unsigned char size_of_type(Expression_type t) {
+unsigned char size_of_type(Type t) {
     switch (t) {
         case Type::INT:
         case Type::UINT:
@@ -28,6 +28,8 @@ unsigned char size_of_type(Expression_type t) {
             return 0;
     }
 };
+
+bool is_signed(Type t) { return t != Type::UINT; }
 
 bool convertible_to(Type from, Type to) {
     constinit const static auto table = [] {

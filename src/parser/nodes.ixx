@@ -21,9 +21,9 @@ class Node {
     virtual ~Node() = default;
 
     // virtual method for Visitor pattern
-    virtual void accept(I_ast_visitor& visitor) = 0;
+    virtual void* accept(I_ast_visitor& visitor) = 0;
     // add this function to every final class
-    // void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    // void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
@@ -59,7 +59,7 @@ class Unary_operation final : public Expression {
     Token operation;
     std::unique_ptr<Expression> value;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Binary_operation final : public Expression {
@@ -72,7 +72,7 @@ class Binary_operation final : public Expression {
     std::unique_ptr<Expression> right_value;
     Token operation;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Function_call final : public Expression {
@@ -84,7 +84,7 @@ class Function_call final : public Expression {
     std::unique_ptr<Expression> function_address;
     std::vector<std::unique_ptr<Expression>> arguments;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Type_operation final : public Expression {
@@ -96,7 +96,7 @@ class Type_operation final : public Expression {
     Token type;
     Token operation;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 // < ================ LITERALS and VARIABLES ================ >
@@ -125,14 +125,14 @@ class Integer_literal final : public Primitive {
 
     int value;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class String_literal final : public Primitive {
    public:
     explicit String_literal(Token literal) : Primitive(std::move(literal)){};
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Char_literal final : public Primitive {
@@ -146,7 +146,7 @@ class Char_literal final : public Primitive {
 
     char value;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Variable final : public Primitive {
@@ -155,7 +155,7 @@ class Variable final : public Primitive {
 
     std::optional<Var_ref> source;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 // < ================ STATEMENTS ================ >
@@ -171,7 +171,7 @@ class Expression_statement final : public Statement {
 
     std::unique_ptr<Expression> expression;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Variable_declaration_statement final : public Statement {
@@ -184,7 +184,7 @@ class Variable_declaration_statement final : public Statement {
     std::optional<Func_ref> if_function{};
     Linkage_type linkage;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class If_statement final : public Statement {
@@ -197,7 +197,7 @@ class If_statement final : public Statement {
     std::vector<std::unique_ptr<Statement>> if_body;
     std::vector<std::unique_ptr<Statement>> else_body;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class While_statement final : public Statement {
@@ -208,7 +208,7 @@ class While_statement final : public Statement {
     std::unique_ptr<Expression> condition;
     std::vector<std::unique_ptr<Statement>> body;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Return_statement final : public Statement {
@@ -217,7 +217,7 @@ class Return_statement final : public Statement {
 
     std::unique_ptr<Expression> expression;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 // < ================ OTHER ================ >
@@ -240,7 +240,7 @@ class Function_definition final : public Node {
     std::vector<std::unique_ptr<Variable_declaration_statement>> arguments;
     std::vector<std::unique_ptr<Statement>> body;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 class Programm final : public Node {
@@ -252,7 +252,7 @@ class Programm final : public Node {
     std::vector<std::unique_ptr<Function_definition>> functions;
     std::vector<std::unique_ptr<Variable_declaration_statement>> globals_vars;
 
-    void accept(I_ast_visitor& visitor) override { visitor.visit(*this); }
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 }  // namespace tc

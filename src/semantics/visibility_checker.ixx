@@ -37,8 +37,8 @@ export class Visibility_checker final : public I_ast_visitor {
         return nullptr;
     }
     void* visit(Type_operation& node) override {
-        return nullptr;
         node.value->accept(*this);
+        return nullptr;
     }
 
     void* visit(Function_call& node) override {

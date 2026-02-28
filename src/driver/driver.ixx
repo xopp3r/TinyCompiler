@@ -14,6 +14,8 @@ import exceptions;
 import type_checker;
 import visibility_checker;
 import ast_printer;
+import codegen;
+
 
 import ast;
 
@@ -31,6 +33,11 @@ void validate_and_annotate_ast(AST& ast) {
     ast.root->accept(v);
     Type_checker t;
     ast.root->accept(t);
+}
+
+void generate_llvm_ir(const AST& ast) {
+    Codegenerator codegen{};
+    codegen.generate(ast);
 }
 
 export void compile(std::ranges::input_range auto text, bool verbose = false) {
@@ -75,6 +82,13 @@ export void compile(std::ranges::input_range auto text, bool verbose = false) {
         }
     } catch (std::exception& e) {
         std::println("Ast dump fail: {}", e.what());
+        std::exit(EXIT_FAILURE);
+    }
+
+    try {
+        generate_llvm_ir(ast);
+    } catch (std::exception& e) {
+        std::println("Codegen fail: {}", e.what());
         std::exit(EXIT_FAILURE);
     }
 }

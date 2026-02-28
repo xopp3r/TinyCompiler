@@ -159,13 +159,12 @@ export class Type_checker final : public I_ast_visitor {
 
         switch (op_category_mapping(node.operation.type)) {
             case Op_category::CAST:
-                if (not convertible_to(node.value->metadata.type, t))
+                if (node.value->metadata.type == Type::VOID)
                     throw Type_exception(
-                        std::format("no conversion from {} to {}", node.value->metadata.type, node.type),
+                        std::format("no conversion to {}", node.type.content_str()),
                         node.operation.position);
 
-                add_implicit_conversion(node.value, t);
-                node.metadata = {t, Category::LVALUE};
+                node.metadata = {t, Category::RVALUE};
                 break;
             case Op_category::DEREFERENCE:
                 if (node.value->metadata.type != Type::PTR)
@@ -180,15 +179,15 @@ export class Type_checker final : public I_ast_visitor {
     }
 
     void* visit(Integer_literal& node) override {
-        node.metadata.type = Type::INT;
+        node.metadata = {Type::INT, Category::RVALUE};
         return nullptr;
     }
     void* visit(String_literal& node) override {
-        node.metadata.type = Type::PTR;
+        node.metadata = {Type::PTR, Category::RVALUE};
         return nullptr;
     }
     void* visit(Char_literal& node) override {
-        node.metadata.type = Type::CHAR;
+        node.metadata = {Type::CHAR, Category::RVALUE};
         return nullptr;
     }
     void* visit(Variable& node) override {
