@@ -40,7 +40,6 @@ module;
 export module codegen;
 import ast;
 import token;
-import type_system;
 
 namespace {
 constinit const char* MODULE_NAME = "The module";
@@ -143,26 +142,25 @@ export class Codegenerator : public I_ast_visitor {
     }
 
     void* visit(Unary_operation& node) override { 
+        if (node.operation.type == Token_type::OP_ADRESS) {
+            request_lvalue = node.value.get(); // (>~<)
+        }
+
         auto* val = vl node.value->accept(*this);
 
         switch (node.operation.type) {
             case Token_type::OP_NOT: return builder->CreateNot(val);
-
             case Token_type::OP_MINUS: {
                 auto* zero = llvm::ConstantInt::get(llvm_type(node.value->metadata.type), 0);
                 return builder->CreateAdd(zero, val);
             }
-
-            case Token_type::OP_ADRESS: {
-                // TODO
-                return nullptr;
-            }
-
+            case Token_type::OP_ADRESS: return val;
             default: throw std::logic_error{"Invalid unary operation type"};
         }
     }
 
     void* visit(Type_operation& node) override { 
+        auto request_lvalue_backup = std::exchange(request_lvalue, nullptr);
         auto* val = vl node.value->accept(*this);
         const auto type = node.type.type;
 
@@ -181,7 +179,7 @@ export class Codegenerator : public I_ast_visitor {
                 if (type == Token_type::TYPE_PTR) {
                     return builder->CreateIntToPtr(val, llvm_type(type));
                 } 
-                if (node.value->metadata.type == Type::PTR) {
+                if (node.value->metadata.type == Expression_type::PTR) {
                     return builder->CreatePtrToInt(val, llvm_type(type));
                 }
 
@@ -194,7 +192,7 @@ export class Codegenerator : public I_ast_visitor {
                 }
                 
                 // if less consider signess
-                if (not is_signed(type_mapping(type))) {
+                if (type_mapping(type) == Expression_type::UINT) {
                     return builder->CreateZExt(val, llvm_type(type));
                 } else {
                     return builder->CreateSExt(val, llvm_type(type));
@@ -202,11 +200,9 @@ export class Codegenerator : public I_ast_visitor {
                 break;   
             }
             case Token_type::OP_DEREFERENCE: {
-                if (request_lvalue == &node) {
-                    request_lvalue = nullptr;
+                if (request_lvalue_backup == &node) {
                     return val;
                 } else {
-                    request_lvalue = nullptr;
                     return builder->CreateLoad(llvm_type(type), val, "deref");
                 }
                 break;
@@ -217,7 +213,9 @@ export class Codegenerator : public I_ast_visitor {
         throw std::logic_error{"Invalid type operation type"};
     } 
 
-    void* visit(Function_call& /*node*/) override { return nullptr; } // TODO
+    void* visit(Function_call& node) override {
+        return &node;
+    } 
 
     void* visit(Integer_literal& node) override { 
         return builder->getInt32(node.value);
@@ -240,12 +238,11 @@ export class Codegenerator : public I_ast_visitor {
     }
 
     void* visit(Variable& node) override {
+        auto request_lvalue_backup = std::exchange(request_lvalue, nullptr);
         auto* var_ptr = get_variable_ptr(node);
-        if (request_lvalue == &node) {
-            request_lvalue = nullptr;
+        if (request_lvalue_backup == &node) {
             return var_ptr;
         } else {
-            request_lvalue = nullptr;
             return builder->CreateLoad(llvm_type(node.metadata.type), var_ptr);
         }
     }

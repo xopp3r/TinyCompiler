@@ -33,7 +33,7 @@ priority_1              // highest priority
 	;
 
 priority_10
-	: priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
+	: priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' type ',' expression ']') )*
 	;
 
 priority_15

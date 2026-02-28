@@ -15,19 +15,7 @@ using Type = Expression_type;
 using Metadata = Expression_metadata;
 using Category = Expression_category;
 
-unsigned char size_of_type(Type t) {
-    switch (t) {
-        case Type::INT:
-        case Type::UINT:
-        case Type::PTR:
-            return 4;
-        case Type::CHAR:
-        case Type::BOOL:
-            return 1;
-        default:
-            return 0;
-    }
-};
+
 
 bool is_signed(Type t) { return t != Type::UINT; }
 
@@ -69,20 +57,20 @@ Type common_type(Type t1, Type t2) {
         table[+Type::INT][+Type::CHAR] = Type::INT;
         table[+Type::UINT][+Type::BOOL] = Type::UINT;
         table[+Type::CHAR][+Type::BOOL] = Type::CHAR;
-        table[+Type::PTR][+Type::INT] = Type::PTR;
-        table[+Type::PTR][+Type::UINT] = Type::PTR;
-        table[+Type::PTR][+Type::CHAR] = Type::PTR;
-        table[+Type::PTR][+Type::BOOL] = Type::PTR;
+        // table[+Type::PTR][+Type::INT] = Type::PTR;
+        // table[+Type::PTR][+Type::UINT] = Type::PTR;
+        // table[+Type::PTR][+Type::CHAR] = Type::PTR;
+        // table[+Type::PTR][+Type::BOOL] = Type::PTR;
 
         // transposd
         table[+Type::BOOL][+Type::INT] = Type::INT;
         table[+Type::CHAR][+Type::INT] = Type::INT;
         table[+Type::BOOL][+Type::UINT] = Type::UINT;
         table[+Type::BOOL][+Type::CHAR] = Type::CHAR;
-        table[+Type::INT][+Type::PTR] = Type::PTR;
-        table[+Type::UINT][+Type::PTR] = Type::PTR;
-        table[+Type::CHAR][+Type::PTR] = Type::PTR;
-        table[+Type::BOOL][+Type::PTR] = Type::PTR;
+        // table[+Type::INT][+Type::PTR] = Type::PTR;
+        // table[+Type::UINT][+Type::PTR] = Type::PTR;
+        // table[+Type::CHAR][+Type::PTR] = Type::PTR;
+        // table[+Type::BOOL][+Type::PTR] = Type::PTR;
 
         return table;
     }();

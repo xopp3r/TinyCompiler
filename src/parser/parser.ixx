@@ -151,7 +151,7 @@ class Parser {
     }
 
     // priority_10
-    //   : priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' expression ']') )*
+    //   : priority_1 ( ('(' (expression (',' expression)*)? ')') | ('[' type ',' expression ']') )*
     //   ;
     std::unique_ptr<Expression> parse_priority(std::integral_constant<int, 10>) {
         auto left = parse_priority(std::integral_constant<int, 1>{});
@@ -160,14 +160,19 @@ class Parser {
             switch (tok->type) {
                 case TT::SQUARE_BRACE_OPEN: {
                     // array indexing
+                    auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
+                    discard_token<TT::COMMA>();
                     auto right = parse_expression();
                     discard_token<TT::SQUARE_BRACE_CLOSE>();
 
-                    // converting arr[i] to @(arr + i)
-                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_PLUS},
-                                                              std::move(left), std::move(right));
-                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE},
-                                                             std::move(left));
+                    // converting arr[type, i] to @((arr as uint + (i * sizeof(type))) as ptr)
+                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(left), Token{std::nullopt, tok->position, TT::TYPE_UINT});
+                    right = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(right), Token{std::nullopt, tok->position, TT::TYPE_UINT});
+                    auto size = std::make_unique<Integer_literal>(Token{std::to_string(static_cast<int>(size_of_type(type_mapping(type.type)))), tok->position, TT::NUMBER});
+                    right = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_MUL}, std::move(right), std::move(size));
+                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_PLUS}, std::move(left), std::move(right));
+                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(right), Token{std::nullopt, tok->position, TT::TYPE_PTR});
+                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE}, std::move(left));
                     break;
                 }
                 case TT::PARENTHESES_OPEN: {

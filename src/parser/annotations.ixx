@@ -77,6 +77,20 @@ constexpr const std::string_view type_name(Expression_type t) {
     return typename_mappings[static_cast<size_t>(t)];
 }
 
+export unsigned char size_of_type(Expression_type t) {
+    switch (t) {
+        case Expression_type::INT:
+        case Expression_type::UINT:
+        case Expression_type::PTR:
+            return 4;
+        case Expression_type::CHAR:
+        case Expression_type::BOOL:
+            return 1;
+        default:
+            return 0;
+    }
+};
+
 }  // namespace tc
 
 template <>
@@ -87,3 +101,4 @@ struct std::formatter<tc::Expression_type> {
         return std::format_to(ctx.out(), "{}", type_name(e));
     }
 };
+

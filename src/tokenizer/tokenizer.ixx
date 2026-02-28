@@ -105,7 +105,7 @@ Token Tokenizer<Iter, Sentinel, Parser>::next_token() {
     }
 
     if (matched_token.type == Token_type::INVALID or std::size(buffer) != matched_token.size) {
-        throw Parser_exception(std::format("Unexpected symbol '{}' at {}", buffer[std::size(buffer) - 1], token_start),
+        throw Parser_exception(std::format("Unexpected symbol '{}' at {}", (std::size(buffer) ? buffer[std::size(buffer) - 1] : ' '), token_start),
                                token_start);
     }
 
