@@ -3,6 +3,7 @@ module;
 #include <functional>
 #include <memory>
 #include <optional>
+#include <variant>
 #include <vector>
 
 export module ast:nodes;
@@ -77,11 +78,11 @@ class Binary_operation final : public Expression {
 
 class Function_call final : public Expression {
    public:
-    explicit Function_call(std::unique_ptr<Expression> function_adress,
+    explicit Function_call(std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_adress,
                            std::vector<std::unique_ptr<Expression>> arguments)
         : function_address(std::move(function_adress)), arguments(std::move(arguments)){};
 
-    std::unique_ptr<Expression> function_address;
+    std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_address;
     std::vector<std::unique_ptr<Expression>> arguments;
 
     void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }

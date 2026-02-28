@@ -214,7 +214,7 @@ export class Codegenerator : public I_ast_visitor {
     } 
 
     void* visit(Function_call& node) override {
-        return &node;
+        return nullptr;
     } 
 
     void* visit(Integer_literal& node) override { 

@@ -4,6 +4,7 @@ module;
 #include <string>
 #include <string_view>
 #include <vector>
+#include <variant>
 
 #define SUBDIR(...)             \
     prefix.resize(++depth + 1); \
@@ -133,7 +134,8 @@ void* AST_printer::visit(Type_operation& node) {
 void* AST_printer::visit(Function_call& node) {
     print("FunctionCall");
     SUBDIR(setTempPrefix(Cbar, Vbar); print("adress");
-           SUBDIR(setTempPrefix(Ebar, Nbar); node.function_address->accept(*this);)
+           SUBDIR(setTempPrefix(Ebar, Nbar); 
+        std::visit([this](auto&& e){ e->accept(*this); }, node.function_address);)
 
                setTempPrefix(Ebar, Nbar);
            print("args " + std::to_string(node.arguments.size())); SUBDIR(printVec(node.arguments);)

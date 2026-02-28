@@ -42,7 +42,7 @@ export class Visibility_checker final : public I_ast_visitor {
     }
 
     void* visit(Function_call& node) override {
-        node.function_address->accept(*this);
+        std::visit([this](auto&& e){ e->accept(*this); }, node.function_address);
         for (auto&& arg : node.arguments) {
             arg->accept(*this);
         }
