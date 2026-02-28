@@ -1,5 +1,6 @@
 module;
 
+#include <llvm-22/llvm/IR/Constant.h>
 #include <llvm-22/llvm/IR/GlobalVariable.h>
 #include <llvm-22/llvm/IR/LLVMContext.h>
 #include <algorithm>
@@ -13,6 +14,8 @@ module;
 
 #include <memory>
 #include <utility>
+#include <variant>
+#include <vector>
 
 #include "llvm/ADT/APInt.h"
 #include "llvm/IR/BasicBlock.h"
@@ -94,7 +97,7 @@ export class Codegenerator : public I_ast_visitor {
         switch (t) {
             case Linkage_type::EXPORT: return llvm::Function::ExternalLinkage;
             case Linkage_type::EXTERN: return llvm::Function::ExternalWeakLinkage;
-            case Linkage_type::NONE: return llvm::Function::InternalLinkage;
+            case Linkage_type::NONE: return llvm::Function::PrivateLinkage;
             default: throw std::logic_error{"Invalid linkage type"};
         }
     }
@@ -135,7 +138,8 @@ export class Codegenerator : public I_ast_visitor {
             case Token_type::OP_MOD:
                 return builder->CreateSRem(l_val, r_val);
             case Token_type::OP_ASSIGNMENT: 
-                return builder->CreateStore(r_val, l_val);
+                builder->CreateStore(r_val, l_val);
+                return r_val;
             default: 
                 throw std::logic_error{"Invalid binary operation type"};
         }
@@ -214,7 +218,18 @@ export class Codegenerator : public I_ast_visitor {
     } 
 
     void* visit(Function_call& node) override {
-        return nullptr;
+        llvm::Function* function = nullptr;
+        if (auto* v = std::get_if<std::unique_ptr<Variable>>(&node.function_address)) {
+            auto function_name = (*v)->source.value().get().name.content_str();
+            function = module->getFunction(function_name);
+        } else {
+            // function = vl std::get_if<std::unique_ptr<Variable>>(&node.function_address)->get()->accept(*this);
+            throw std::logic_error{"Indirect calls are not implemented yet"}; // TODO 
+        }
+
+        auto llvm_args_r = node.arguments | rnv::transform([this](auto&& arg){ return vl arg->accept(*this); });
+        std::vector llvm_args{std::from_range, llvm_args_r};
+        return builder->CreateCall(function, llvm_args, "call_result");
     } 
 
     void* visit(Integer_literal& node) override { 
@@ -253,14 +268,18 @@ export class Codegenerator : public I_ast_visitor {
     }
 
     void* visit(Variable_declaration_statement& node) override { 
+        llvm::Type* llvm_t = llvm_type(node.type.type);
+        const auto var_name = node.name.content_str();
+        
         if (current_function) {
             auto& BB = current_function->getEntryBlock();
             llvm::IRBuilder<> tmp_b(&BB, BB.begin());
-            llvm::Value* var = tmp_b.CreateAlloca(llvm_type(node.type.type), nullptr, node.name.content_str()); 
+            llvm::Value* var = tmp_b.CreateAlloca(llvm_t, nullptr, var_name); 
             local_variables.insert({&node, var});
             return var;
         } else {
-            llvm::Value* var = new llvm::GlobalVariable{*module, llvm_type(node.type.type), false, llvm_linkage(node.linkage), nullptr, node.name.content_str()};
+            llvm::Constant* zero = (node.linkage != Linkage_type::EXTERN) ? llvm::ConstantInt::getNullValue(llvm_t) : nullptr; 
+            llvm::Value* var = new llvm::GlobalVariable{*module, llvm_t, false, llvm_linkage(node.linkage), zero, var_name};
             global_symbols.insert({&node, var});
             return var;
         }

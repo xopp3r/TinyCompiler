@@ -1,8 +1,8 @@
 int a;
 extern uint b;
+export char c;
 
 export fn int main() {
-    int t;
-    t = a + b as int;
-    return t;
+    b = a = a + b as int - c as int;
+    return b;
 }

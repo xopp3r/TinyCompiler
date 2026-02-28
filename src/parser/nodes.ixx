@@ -36,68 +36,11 @@ class Node {
     Node() = default;
 };
 
-// class Type : public Node {
-//    public:
-//     virtual ~Type() override = default;
-
-//     Expression_type type;
-// };
-
-// < ================ EXPRESSIONS ================ >
-
 class Expression : public Node {
    public:
     virtual ~Expression() override = default;
 
     Expression_metadata metadata;
-};
-
-class Unary_operation final : public Expression {
-   public:
-    explicit Unary_operation(Token operation, std::unique_ptr<Expression> value)
-        : operation(std::move(operation)), value(std::move(value)){};
-
-    Token operation;
-    std::unique_ptr<Expression> value;
-
-    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
-};
-
-class Binary_operation final : public Expression {
-   public:
-    explicit Binary_operation(Token operation, std::unique_ptr<Expression> left_value,
-                              std::unique_ptr<Expression> right_value)
-        : left_value(std::move(left_value)), right_value(std::move(right_value)), operation(std::move(operation)){};
-
-    std::unique_ptr<Expression> left_value;
-    std::unique_ptr<Expression> right_value;
-    Token operation;
-
-    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
-};
-
-class Function_call final : public Expression {
-   public:
-    explicit Function_call(std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_adress,
-                           std::vector<std::unique_ptr<Expression>> arguments)
-        : function_address(std::move(function_adress)), arguments(std::move(arguments)){};
-
-    std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_address;
-    std::vector<std::unique_ptr<Expression>> arguments;
-
-    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
-};
-
-class Type_operation final : public Expression {
-   public:
-    explicit Type_operation(Token operation, std::unique_ptr<Expression> value, Token type)
-        : value(std::move(value)), type(std::move(type)), operation(std::move(operation)){};
-
-    std::unique_ptr<Expression> value;
-    Token type;
-    Token operation;
-
-    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
 
 // < ================ LITERALS and VARIABLES ================ >
@@ -155,6 +98,63 @@ class Variable final : public Primitive {
     explicit Variable(Token tok) : Primitive(std::move(tok)){};
 
     std::optional<Var_ref> source;
+
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
+};
+
+// < ================ EXPRESSIONS ================ >
+
+class Unary_operation final : public Expression {
+   public:
+    explicit Unary_operation(Token operation, std::unique_ptr<Expression> value)
+        : operation(std::move(operation)), value(std::move(value)){};
+
+    Token operation;
+    std::unique_ptr<Expression> value;
+
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
+};
+
+class Binary_operation final : public Expression {
+   public:
+    explicit Binary_operation(Token operation, std::unique_ptr<Expression> left_value,
+                              std::unique_ptr<Expression> right_value)
+        : left_value(std::move(left_value)), right_value(std::move(right_value)), operation(std::move(operation)){};
+
+    std::unique_ptr<Expression> left_value;
+    std::unique_ptr<Expression> right_value;
+    Token operation;
+
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
+};
+
+class Function_call final : public Expression {
+   public:
+    explicit Function_call(std::unique_ptr<Expression> function_adress,
+                           std::vector<std::unique_ptr<Expression>> arguments)
+        : function_address({}), arguments(std::move(arguments)){
+            Expression* raw = function_adress.release();
+            if (auto* var = dynamic_cast<Variable*>(raw)) {
+                function_address = std::unique_ptr<Variable>(var);
+            } else {
+                function_address = std::unique_ptr<Expression>(raw);
+            }
+        };
+
+    std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_address;
+    std::vector<std::unique_ptr<Expression>> arguments;
+
+    void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
+};
+
+class Type_operation final : public Expression {
+   public:
+    explicit Type_operation(Token operation, std::unique_ptr<Expression> value, Token type)
+        : value(std::move(value)), type(std::move(type)), operation(std::move(operation)){};
+
+    std::unique_ptr<Expression> value;
+    Token type;
+    Token operation;
 
     void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
