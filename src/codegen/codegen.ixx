@@ -38,7 +38,7 @@ module;
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
 
-#define vl (llvm::Value *)
+#define cast2llvmv (llvm::Value *)
 
 export module codegen;
 import ast;
@@ -107,8 +107,8 @@ export class Codegenerator : public I_ast_visitor {
             request_lvalue = node.left_value.get(); // (>~<)
         }
 
-        auto* l_val = vl node.left_value->accept(*this);
-        auto* r_val = vl node.right_value->accept(*this);
+        auto* l_val = cast2llvmv node.left_value->accept(*this);
+        auto* r_val = cast2llvmv node.right_value->accept(*this);
 
         switch (node.operation.type) {
             case Token_type::OP_PLUS:
@@ -150,7 +150,7 @@ export class Codegenerator : public I_ast_visitor {
             request_lvalue = node.value.get(); // (>~<)
         }
 
-        auto* val = vl node.value->accept(*this);
+        auto* val = cast2llvmv node.value->accept(*this);
 
         switch (node.operation.type) {
             case Token_type::OP_NOT: return builder->CreateNot(val);
@@ -165,7 +165,7 @@ export class Codegenerator : public I_ast_visitor {
 
     void* visit(Type_operation& node) override { 
         auto request_lvalue_backup = std::exchange(request_lvalue, nullptr);
-        auto* val = vl node.value->accept(*this);
+        auto* val = cast2llvmv node.value->accept(*this);
         const auto type = node.type.type;
 
         switch (node.operation.type) {
@@ -223,11 +223,11 @@ export class Codegenerator : public I_ast_visitor {
             auto function_name = (*v)->source.value().get().name.content_str();
             function = module->getFunction(function_name);
         } else {
-            // function = vl std::get_if<std::unique_ptr<Variable>>(&node.function_address)->get()->accept(*this);
+            // function = cast2llvmv std::get_if<std::unique_ptr<Variable>>(&node.function_address)->get()->accept(*this);
             throw std::logic_error{"Indirect calls are not implemented yet"}; // TODO 
         }
 
-        auto llvm_args_r = node.arguments | rnv::transform([this](auto&& arg){ return vl arg->accept(*this); });
+        auto llvm_args_r = node.arguments | rnv::transform([this](auto&& arg){ return cast2llvmv arg->accept(*this); });
         std::vector llvm_args{std::from_range, llvm_args_r};
         return builder->CreateCall(function, llvm_args, "call_result");
     } 
@@ -285,12 +285,55 @@ export class Codegenerator : public I_ast_visitor {
         }
     }
 
-    void* visit(If_statement& /*node*/) override { return nullptr; }
+    void* visit(If_statement& node) override {
+        llvm::BasicBlock* cond_bb = llvm::BasicBlock::Create(ctx, "if.cond_bb", current_function);
+        llvm::BasicBlock* then_bb = llvm::BasicBlock::Create(ctx, "if.then_bb", current_function);
+        llvm::BasicBlock* else_bb = llvm::BasicBlock::Create(ctx, "if.else_bb", current_function);
+        llvm::BasicBlock* after_bb = llvm::BasicBlock::Create(ctx, "if.after_bb", current_function);
+        
+        builder->CreateBr(cond_bb);
+        builder->SetInsertPoint(cond_bb);
 
-    void* visit(While_statement& /*node*/) override { return nullptr; }
+        llvm::Value* condition = cast2llvmv node.condition->accept(*this);
+        builder->CreateCondBr(condition, then_bb, else_bb); 
+        
+        builder->SetInsertPoint(then_bb);
+        rn::for_each(node.if_body, [this](auto&& stmt){ stmt->accept(*this); });
+        builder->CreateBr(after_bb);
+
+        builder->SetInsertPoint(else_bb);
+        rn::for_each(node.else_body, [this](auto&& stmt){ stmt->accept(*this); });
+        builder->CreateBr(after_bb);
+
+        builder->SetInsertPoint(after_bb);
+        return nullptr;
+    }
+
+    void* visit(While_statement& node) override {
+        llvm::BasicBlock* preheader_bb = llvm::BasicBlock::Create(ctx, "while.preheader_bb", current_function);
+        llvm::BasicBlock* cond_bb = llvm::BasicBlock::Create(ctx, "while.cond_bb", current_function);
+        llvm::BasicBlock* body_bb = llvm::BasicBlock::Create(ctx, "while.body_bb", current_function);
+        llvm::BasicBlock* after_bb = llvm::BasicBlock::Create(ctx, "while.after_bb", current_function);
+
+        builder->CreateBr(preheader_bb);
+        builder->SetInsertPoint(preheader_bb);
+        builder->CreateBr(cond_bb);
+        builder->SetInsertPoint(cond_bb);
+        
+        llvm::Value* condition = cast2llvmv node.condition->accept(*this);
+        builder->CreateCondBr(condition, body_bb, after_bb); 
+        
+        builder->SetInsertPoint(body_bb);
+        rn::for_each(node.body, [this](auto&& stmt){ stmt->accept(*this); });
+        
+        builder->CreateBr(cond_bb);
+        builder->SetInsertPoint(after_bb);
+        
+        return nullptr;
+    }
 
     void* visit(Return_statement& node) override { 
-        auto* val = vl node.expression->accept(*this);
+        auto* val = cast2llvmv node.expression->accept(*this);
         builder->CreateRet(val);
         return nullptr; 
     }
@@ -306,7 +349,7 @@ export class Codegenerator : public I_ast_visitor {
 
         rn::for_each(node.arguments | rnv::enumerate, [this](auto&& t){ 
             auto&& [num, arg] = t;
-            auto* arg_ptr = vl arg->accept(*this); 
+            auto* arg_ptr = cast2llvmv arg->accept(*this); 
             builder->CreateStore(current_function->getArg(num), arg_ptr);
         });
         rn::for_each(node.body, [this](auto&& stmt){ stmt->accept(*this); });
