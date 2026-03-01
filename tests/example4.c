@@ -12,7 +12,7 @@ fn uint fibb_loop(uint n) {
     prev = curr = 1;
     
     uint i;
-    i = 0 as uint;
+    i = 2 as uint;
     while (i < n) {
         uint tmp;
         tmp = prev;
@@ -38,24 +38,27 @@ fn uint fibb_recursive(uint n) {
 
 
 export fn int main(){
-    printf("write a number\n");
+    printf("write a number:\n");
     uint limit;
     scanf("%u", &limit);
-    printf("benchmarking %uth fibbonaci number computation\n", limit);
+    printf("benchmarking %uth fibbonaci number computation:\n", limit);
     
     uint start_time;
     uint end_time;
+    uint num;
 
     start_time = clock();
-    fibb_loop(limit);
+    num = fibb_loop(limit);
     end_time = clock();
-    printf("loop version took %u cycles\n", end_time - start_time);
+    printf(" = %u\n", num);
+    printf("loop version took ~%u microseconds\n\n", end_time - start_time);
 
     calls_cnt = 0;
     start_time = clock();
-    fibb_recursive(limit);
+    num = fibb_recursive(limit);
     end_time = clock();
-    printf("recursive version took %u cycles and %u function calls\n", end_time - start_time, calls_cnt);
+    printf(" = %u\n", num);
+    printf("recursive version took ~%u microseconds and %u function calls\n\n", end_time - start_time, calls_cnt);
 
     return 0;
 }
