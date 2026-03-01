@@ -300,11 +300,11 @@ export class Codegenerator : public I_ast_visitor {
         
         builder.SetInsertPoint(then_bb);
         rn::for_each(node.if_body, [this](auto&& stmt){ stmt->accept(*this); });
-        builder.CreateBr(after_bb);
+        if (not builder.GetInsertBlock()->getTerminator()) builder.CreateBr(after_bb);
 
         builder.SetInsertPoint(else_bb);
         rn::for_each(node.else_body, [this](auto&& stmt){ stmt->accept(*this); });
-        builder.CreateBr(after_bb);
+        if (not builder.GetInsertBlock()->getTerminator()) builder.CreateBr(after_bb);
 
         builder.SetInsertPoint(after_bb);
         return nullptr;
@@ -327,7 +327,7 @@ export class Codegenerator : public I_ast_visitor {
         builder.SetInsertPoint(body_bb);
         rn::for_each(node.body, [this](auto&& stmt){ stmt->accept(*this); });
         
-        builder.CreateBr(cond_bb);
+        if (not builder.GetInsertBlock()->getTerminator()) builder.CreateBr(cond_bb);
         builder.SetInsertPoint(after_bb);
         
         return nullptr;
