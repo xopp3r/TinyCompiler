@@ -24,6 +24,7 @@ export class CFG_checker final : public I_ast_visitor {
     void* visit(Return_statement&) override { return this; }
 
     void* visit(Function_definition& node) override {
+        if (node.var.linkage == Linkage_type::EXTERN) return nullptr;
         if (std::size(node.body) == 0 or not node.body.back()->accept(*this)) {
             throw CFG_exception{std::format("function {} does not end with a return", node.var.name.content_str()), node.var.name.position};
         }

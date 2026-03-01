@@ -227,7 +227,7 @@ class Function_definition final : public Node {
    public:
     explicit Function_definition(Token name, Token return_type,
                                  std::vector<std::unique_ptr<Variable_declaration_statement>> arguments,
-                                 std::vector<std::unique_ptr<Statement>> body,
+                                 std::vector<std::unique_ptr<Statement>> body = {},
                                  Linkage_type linkage = Linkage_type::NONE)
         : var(Token{{}, {}, Token_type::TYPE_PTR}, std::move(name), linkage),
           return_type(std::move(return_type)),

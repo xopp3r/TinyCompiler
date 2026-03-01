@@ -16,12 +16,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 add_executable(main)
 
-# FIXME
-# target_link_options(main PRIVATE -stdlib=libc++)
-# target_compile_options(main PRIVATE -stdlib=libc++) 
-# FIXME
-
-
 target_compile_options(main PRIVATE 
     -Wall -Wextra -Wpedantic -Werror -Wredundant-decls -Wunused
     
@@ -31,14 +25,12 @@ target_compile_options(main PRIVATE
         -DDEBUG
         -fno-omit-frame-pointer
         -fno-inline
-        # -fsanitize=address,leak,undefined
     >
     
     $<$<CONFIG:Release>:
         -O2
         -DNDEBUG
         -march=native
-        # -ffast-math
     >
 ) 
 

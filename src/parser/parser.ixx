@@ -384,7 +384,7 @@ class Parser {
     }
 
     // function_defenition
-    //     : 'function' type identifier '(' argument_list_defenition ')' body
+    //     : 'function' type identifier '(' argument_list_defenition ')' (body | ';')
     //     ;
     std::unique_ptr<Function_definition> parse_function_definition() {
         discard_token<TT::KEYWORD_FUNCTION>();
@@ -393,9 +393,13 @@ class Parser {
         discard_token<TT::PARENTHESES_OPEN>();
         auto args = parse_argument_list_defenition();
         discard_token<TT::PARENTHESES_CLOSE>();
-        auto body = parse_body();
-        return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args),
-                                                     std::move(body));
+        if (try_consume_token<TT::SEMICOLON>()) {
+            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args));
+        } else {
+            auto body = parse_body();
+            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args),
+                std::move(body));
+        }
     }
 
     // linkage_qualifiers

@@ -97,7 +97,7 @@ while_statement
     ;
 
 function_defenition
-    : 'function' type identifier '(' argument_list_defenition ')' body
+    : 'function' type identifier '(' argument_list_defenition ')' (body | ';')
     ;
 
 argument_list_defenition

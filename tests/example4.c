@@ -2,8 +2,8 @@
 ptr yes;
 ptr no;
 
-extern fn void puts(ptr str){}
-extern fn void scanf(ptr fmt, ptr arg1, ptr arg2){}
+extern fn void puts(ptr str);
+extern fn void scanf(ptr fmt, ptr arg1, ptr arg2);
 
 
 fn uint fibb(uint n) {

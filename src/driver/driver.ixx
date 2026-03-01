@@ -1,8 +1,11 @@
 module;
 #include <cstdlib>
 #include <exception>
+#include <iostream>
+#include <ostream>
 #include <print>
 #include <ranges>
+#include <string_view>
 
 export module driver;
 import tokenizer;
@@ -20,7 +23,8 @@ import ast;
 
 namespace tc {
 
-AST build_ast(std::ranges::input_range auto text) {
+AST build_ast(std::istream& in) {
+    auto text = std::ranges::subrange(std::istreambuf_iterator<char>(in), std::default_sentinel);
     Tokenizer tokenizer{text, Parsing_dfa{}};
     Parser parser{[&tokenizer = tokenizer]() { return tokenizer.next_token(); }};
     AST ast = parser.build_AST();
@@ -36,68 +40,85 @@ void validate_and_annotate_ast(AST& ast) {
     ast.root->accept(c);
 }
 
-void generate_llvm_ir(const AST& ast) {
-    Codegenerator codegen{};
+void generate_llvm_ir(const AST& ast, std::string_view module_name, std::ostream& out) {
+    Codegenerator codegen{module_name, out};
     codegen.generate(ast);
 }
 
-export void compile(std::ranges::input_range auto text, bool verbose = false) {
-    AST ast;
-
-    try {  // parse source code to build ast
-        ast = build_ast(text);
-    } catch (Parser_exception& e) {
-        if (e.where()) {
-            const auto pos = e.where().value();
-            std::println("Parsing error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
-        } else {
-            std::println("Parsing error:\n {}", e.what());
-        }
-        std::exit(EXIT_FAILURE);
-    }
-
-    try {  // transformations over ast
-        validate_and_annotate_ast(ast);
-    } catch (Visibility_exception& e) {
-        if (e.where()) {
-            const auto pos = e.where().value();
-            std::println("Visibility error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
-        } else {
-            std::println("Visibility error:\n {}", e.what());
-        }
-        std::exit(EXIT_FAILURE);
-    } catch (Type_exception& e) {
-        if (e.where()) {
-            const auto pos = e.where().value();
-            std::println("Type error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
-        } else {
-            std::println("Type error:\n {}", e.what());
-        }
-        std::exit(EXIT_FAILURE);
-    } catch (CFG_exception& e) {
-        if (e.where()) {
-            const auto pos = e.where().value();
-            std::println("CFG error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
-        } else {
-            std::println("CFG error:\n {}", e.what());
-        }
-        std::exit(EXIT_FAILURE);
-    }
-
+export void compile(std::istream& in = std::cin, std::ostream& out = std::cout, std::string_view name = "out.ll", bool dump_ast = false) {
     try {
-        if (verbose) {
-            AST_printer p;
-            ast.root->accept(p);
-        }
-    } catch (std::exception& e) {
-        std::println("Ast dump fail: {}", e.what());
-        std::exit(EXIT_FAILURE);
-    }
+        AST ast;
 
-    try {
-        generate_llvm_ir(ast);
+        try {  // parse source code to build ast
+
+            ast = build_ast(in);
+
+        } catch (Parser_exception& e) {
+            if (e.where()) {
+                const auto pos = e.where().value();
+                std::println(stderr, "Parsing error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+            } else {
+                std::println(stderr, "Parsing error:\n {}", e.what());
+            }
+            std::exit(EXIT_FAILURE);
+        }
+
+        try {  // transformations over ast
+
+            validate_and_annotate_ast(ast);
+
+        } catch (Visibility_exception& e) {
+            if (e.where()) {
+                const auto pos = e.where().value();
+                std::println(stderr, "Visibility error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+            } else {
+                std::println(stderr, "Visibility error:\n {}", e.what());
+            }
+            std::exit(EXIT_FAILURE);
+        } catch (Type_exception& e) {
+            if (e.where()) {
+                const auto pos = e.where().value();
+                std::println(stderr, "Type error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+            } else {
+                std::println(stderr, "Type error:\n {}", e.what());
+            }
+            std::exit(EXIT_FAILURE);
+        } catch (CFG_exception& e) {
+            if (e.where()) {
+                const auto pos = e.where().value();
+                std::println(stderr, "CFG error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+            } else {
+                std::println(stderr, "CFG error:\n {}", e.what());
+            }
+            std::exit(EXIT_FAILURE);
+        }
+
+        if (dump_ast) {
+            try {
+                AST_printer p{out};
+                ast.root->accept(p);
+            } catch (std::exception& e) {
+                std::println(stderr, "Ast dump fail: {}", e.what());
+                std::exit(EXIT_FAILURE);
+            }
+        } else {
+            try { // codegen            
+
+                generate_llvm_ir(ast, name, out);
+
+            } catch (Codegen_exception& e) {
+                if (e.where()) {
+                    const auto pos = e.where().value();
+                    std::println(stderr, "CFG error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+                } else {
+                    std::println(stderr, "CFG error:\n {}", e.what());
+                }
+                std::exit(EXIT_FAILURE);
+            }
+        }
+
     } catch (std::exception& e) {
-        std::println("Codegen fail: {}", e.what());
+        std::println(stderr, "Internal error: {}", e.what());
         std::exit(EXIT_FAILURE);
     }
 }

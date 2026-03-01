@@ -1,6 +1,7 @@
 module;
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -30,6 +31,7 @@ namespace {
 
 export class AST_printer final : public I_ast_visitor {
    public:
+    AST_printer(std::ostream& output = std::cout) : out(output) {}
     void PrintProgramASTasHierarcy(Programm& node);
 
    private:
@@ -37,6 +39,7 @@ export class AST_printer final : public I_ast_visitor {
     std::vector<std::string_view> prefix;
     size_t tempPrefixIndex = 0;
     std::u8string_view afterPrefix;
+    std::ostream& out;
 
     void updateTempPrefix();
     void setTempPrefix(const std::u8string_view& tempPrefix, const std::u8string_view& expiritionPrefix);
@@ -102,9 +105,10 @@ void AST_printer::updateTempPrefix() {
 }
 
 void AST_printer::print(const std::string_view& str) {
-    for (const auto& pref : prefix) std::cout << pref;
-    std::cout << str << std::endl;
-
+    for (const auto& pref : prefix) 
+        out << pref;
+    
+    out << str << std::endl;
     updateTempPrefix();
 }
 
