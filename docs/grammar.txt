@@ -101,7 +101,7 @@ function_defenition
     ;
 
 argument_list_defenition
-    : (variable_declaration (',' variable_declaration)*)?
+    : (variable_declaration (',' variable_declaration)* (',' '...')?)? 
     ;
 
 linkage_qualifiers

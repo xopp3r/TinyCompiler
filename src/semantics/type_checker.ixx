@@ -116,9 +116,9 @@ export class Type_checker final : public I_ast_visitor {
         const Function_definition& f = function->get();
         node.metadata = {type_mapping(f.return_type.type), Category::RVALUE};
 
-        if (f.var.linkage == Linkage_type::EXTERN) return nullptr;  // skip args check for extern functions
+        // if (f.var.linkage == Linkage_type::EXTERN) return nullptr;  // skip args check for extern functions
 
-        if (node.arguments.size() != f.arguments.size()) {
+        if (node.arguments.size() < f.arguments.size() and not f.variadic) {
             throw Type_exception(
                 std::format("wrong number of arguments to call '{}' function", f.var.name.content_str()),
                 current_function->get().return_type.position);
@@ -135,6 +135,12 @@ export class Type_checker final : public I_ast_visitor {
                     current_function->get().return_type.position);
             }
         }
+
+        for (size_t i = f.arguments.size(); i < node.arguments.size(); i++) {
+            if (node.arguments[i]->metadata.type == Type::PTR) continue;
+            add_implicit_conversion(node.arguments[i], Type::INT);
+        }
+
         return nullptr;
     }
 

@@ -42,6 +42,7 @@ export enum class Token_type : unsigned char {
     PARENTHESES_OPEN,    // (
     PARENTHESES_CLOSE,   // )
     COMMA,               // ,
+    DOT,                 // .
     OP_PLUS,             // +
     OP_MINUS,            // -
     OP_MUL,              // *
@@ -99,6 +100,7 @@ export constexpr std::string_view type_str(Token_type type) noexcept {
         "PARENTHESES_OPEN",
         "PARENTHESES_CLOSE",
         "COMMA",
+        "DOT",
         "OP_PLUS",
         "OP_MINUS",
         "OP_MUL",
@@ -161,6 +163,7 @@ export struct Token {
             "(",
             ")",
             ",",
+            ".",
             "+",
             "-",
             "*",

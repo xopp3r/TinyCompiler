@@ -367,20 +367,25 @@ class Parser {
     }
 
     // argument_list_defenition
-    //     : (variable_declaration (',' variable_declaration)*)?
+    //     : (variable_declaration (',' variable_declaration)* (',' '...')?)? 
     //     ;
-    std::vector<std::unique_ptr<Variable_declaration_statement>> parse_argument_list_defenition() {
+    std::pair<std::vector<std::unique_ptr<Variable_declaration_statement>>, bool> parse_argument_list_defenition() {
         std::vector<std::unique_ptr<Variable_declaration_statement>> args;
+        bool variadic = false;
 
         if (current_token.type == TT::PARENTHESES_CLOSE) {
-            return args;
+            return {std::move(args), false};
         }
 
         do {
-            args.push_back(parse_variable_declaration_statement());
+            if (try_discard_token<TT::DOT>()) {
+                discard_token<TT::DOT>();
+                discard_token<TT::DOT>();
+                variadic = true;
+            } else args.push_back(parse_variable_declaration_statement());
         } while (try_discard_token<TT::COMMA>());
 
-        return args;
+        return {std::move(args), variadic};
     }
 
     // function_defenition
@@ -391,13 +396,13 @@ class Parser {
         auto type = consume_token<EXPAND_KEYWORDS_TOKENS(COMMA_OP)>();
         auto name = consume_token<TT::IDENTIFIER>();
         discard_token<TT::PARENTHESES_OPEN>();
-        auto args = parse_argument_list_defenition();
+        auto [args, variadic] = parse_argument_list_defenition();
         discard_token<TT::PARENTHESES_CLOSE>();
         if (try_consume_token<TT::SEMICOLON>()) {
-            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args));
+            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args), variadic);
         } else {
             auto body = parse_body();
-            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args),
+            return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args), variadic,
                 std::move(body));
         }
     }

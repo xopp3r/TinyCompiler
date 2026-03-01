@@ -2,8 +2,8 @@
 ptr yes;
 ptr no;
 
-extern fn int puts(ptr str);
-extern fn int scanf(ptr fmt, ptr arg1, ptr arg2);
+extern fn int printf(ptr fmt, ...);
+extern fn int scanf(ptr fmt, ...);
 
 
 fn uint fibb(uint n) {
@@ -27,12 +27,14 @@ export fn int main(){
 
     uint limit; uint cnt;
     scanf("%u%u", &limit, &cnt);
+    printf("limit = %u\n", limit);
+    printf("cnt = %u\n", cnt);
 
     cnt = fibb(cnt);
     if (cnt < limit) {
-        puts(yes);
+        printf("%s", yes);
     } else {
-        puts(no);
+        printf("%s", no);
     }
 
     return 0;

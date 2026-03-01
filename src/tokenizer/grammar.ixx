@@ -32,6 +32,7 @@ export enum class Parsing_state : unsigned char {
     PARENTHESES_OPEN,    // (
     PARENTHESES_CLOSE,   // )
     COMMA,               // ,
+    DOT,                 // .
     PLUS,                // +
     MINUS,               // -
     ASTERISK,            // *
@@ -65,6 +66,7 @@ export enum class Symbol_type : unsigned char {
     PARENTHESES_OPEN,    // (
     PARENTHESES_CLOSE,   // )
     COMMA,               // ,
+    DOT,                 // ,
     PLUS,                // +
     MINUS,               // -
     ASTERISK,            // *
@@ -134,6 +136,7 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
         table[+Parsing_state::INITIAL][+Symbol_type::PARENTHESES_OPEN] = Parsing_state::PARENTHESES_OPEN;
         table[+Parsing_state::INITIAL][+Symbol_type::PARENTHESES_CLOSE] = Parsing_state::PARENTHESES_CLOSE;
         table[+Parsing_state::INITIAL][+Symbol_type::COMMA] = Parsing_state::COMMA;
+        table[+Parsing_state::INITIAL][+Symbol_type::DOT] = Parsing_state::DOT;
         table[+Parsing_state::INITIAL][+Symbol_type::PLUS] = Parsing_state::PLUS;
         table[+Parsing_state::INITIAL][+Symbol_type::MINUS] = Parsing_state::MINUS;
         table[+Parsing_state::INITIAL][+Symbol_type::ASTERISK] = Parsing_state::ASTERISK;
@@ -183,6 +186,7 @@ export constexpr auto map_char = [](char c) noexcept {
         table['('] = Symbol_type::PARENTHESES_OPEN;
         table[')'] = Symbol_type::PARENTHESES_CLOSE;
         table[','] = Symbol_type::COMMA;
+        table['.'] = Symbol_type::DOT;
         table['+'] = Symbol_type::PLUS;
         table['-'] = Symbol_type::MINUS;
         table['*'] = Symbol_type::ASTERISK;
@@ -225,6 +229,7 @@ export constexpr auto output_function = [](Parsing_state state) noexcept {
         table[+Parsing_state::PARENTHESES_OPEN] = Token_type::PARENTHESES_OPEN;
         table[+Parsing_state::PARENTHESES_CLOSE] = Token_type::PARENTHESES_CLOSE;
         table[+Parsing_state::COMMA] = Token_type::COMMA;
+        table[+Parsing_state::DOT] = Token_type::DOT;
         table[+Parsing_state::PLUS] = Token_type::OP_PLUS;
         table[+Parsing_state::MINUS] = Token_type::OP_MINUS;
         table[+Parsing_state::ASTERISK] = Token_type::OP_MUL;

@@ -27,7 +27,12 @@ auto main(const int argc, char const* const* const argv) -> int {
                 "  -stdio         -  use stdin and stdout as files\n"
                 "  -emit-ast      -  produce source code ast\n"
                 "  -help          -  display this message\n"
+                "  -version       -  display compiler version\n"
             );
+            std::exit(EXIT_SUCCESS);
+
+        } else if (arg == "-version") {
+            std::println("Tiny compiler by @xopp3r. Version 0.1.0");
             std::exit(EXIT_SUCCESS);
 
         } else if (arg == "-o") {

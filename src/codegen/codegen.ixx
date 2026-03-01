@@ -41,6 +41,7 @@ module;
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include "llvm/TargetParser/Host.h"
 
 #define cast2llvmv (llvm::Value *)
 
@@ -56,8 +57,20 @@ namespace rnv = std::ranges::views;
 
 export class Codegenerator : public I_ast_visitor {
    public:
-    Codegenerator(std::string_view name, std::ostream& out)
-        : module{name, ctx}, out{out} {}
+    Codegenerator(std::string_view name, std::ostream& out, std::string asked_triple = llvm::sys::getDefaultTargetTriple())
+        : module{name, ctx}, out{out} {
+            llvm::Triple triple{asked_triple};
+            triple.setArchName("i686");
+            module.setTargetTriple(triple);
+
+            const char* DataLayout32Bit = 
+                "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-"
+                "f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32-S32";
+            module.setDataLayout(DataLayout32Bit);
+            
+            const llvm::DataLayout& DL = module.getDataLayout();
+            if (DL.getPointerSize() != 4) throw Codegen_exception{std::format("Target pointer size is not 4 bytes but {}", DL.getPointerSize())};
+        }
 
     void generate(const AST& ast) {
         ast.root->accept(*this);
@@ -330,7 +343,7 @@ export class Codegenerator : public I_ast_visitor {
         llvm::Type* ret = llvm_type(node.return_type.type);
         auto a = node.arguments | rnv::transform([this](auto&& p){ return llvm_type(p->type.type); });
         std::vector<llvm::Type*> args(std::from_range, a);
-        llvm::FunctionType* func_type = llvm::FunctionType::get(ret, args, false); // TODO VARARGS
+        llvm::FunctionType* func_type = llvm::FunctionType::get(ret, args, node.variadic);
         current_function = llvm::Function::Create(func_type, llvm_linkage(node.var.linkage), node.var.name.content_str(), &module);
 
         if (node.var.linkage == Linkage_type::EXTERN) return nullptr;
