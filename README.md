@@ -14,4 +14,4 @@ The compiler translates a simple, statically typed language (inspired by C) into
   - Direct calls to any libc function (no wrappers needed), even for variadic functions
   - Static typing and type checking
   - Built with modern C++23 and CMake
-  - fully capable C‑like language
+  - Fully capable C‑like language
