@@ -1,4 +1,4 @@
-fn int main(int argc, ptr argv) {
+export fn int main(int argc, ptr argv) {
     int var1;
     char var2;
     var1 = var2;

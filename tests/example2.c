@@ -1,6 +1,6 @@
-extern fn void puts(){}
+extern fn int puts(ptr str);
 
-fn int main() {    
+export fn int main() {    
     puts("Hello World!\n");
     return 0;
 }

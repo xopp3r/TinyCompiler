@@ -2,8 +2,8 @@
 ptr yes;
 ptr no;
 
-extern fn void puts(ptr str);
-extern fn void scanf(ptr fmt, ptr arg1, ptr arg2);
+extern fn int puts(ptr str);
+extern fn int scanf(ptr fmt, ptr arg1, ptr arg2);
 
 
 fn uint fibb(uint n) {
@@ -21,7 +21,7 @@ fn uint fibb(uint n) {
     return curr;
 }
 
-fn int main(){
+export fn int main(){
     yes = "yes";
     no = "no";
 

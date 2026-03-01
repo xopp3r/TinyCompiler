@@ -217,7 +217,7 @@ export class Codegenerator : public I_ast_visitor {
 
         auto llvm_args_r = node.arguments | rnv::transform([this](auto&& arg){ return cast2llvmv arg->accept(*this); });
         std::vector llvm_args{std::from_range, llvm_args_r};
-        return builder.CreateCall(function, llvm_args, "call_result");
+        return builder.CreateCall(function, llvm_args);
     } 
 
     void* visit(Integer_literal& node) override { 
