@@ -48,6 +48,7 @@ export enum class Parsing_state : unsigned char {
     DOUBLE_AMPERSAND,
     DOUBLE_PIPE,
     DOUBLE_EQUALS,
+    NOT_EQUALS,
     LESS_EQ,
     GREATER_EQ,
     size
@@ -158,6 +159,7 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
 
         table[+Parsing_state::INITIAL][+Symbol_type::EQUALS] = Parsing_state::EQUALS;
         table[+Parsing_state::EQUALS][+Symbol_type::EQUALS] = Parsing_state::DOUBLE_EQUALS;
+        table[+Parsing_state::EXCLAMATION][+Symbol_type::EQUALS] = Parsing_state::NOT_EQUALS;
 
         return table;
     }();
@@ -242,6 +244,7 @@ export constexpr auto output_function = [](Parsing_state state) noexcept {
         table[+Parsing_state::EXCLAMATION] = Token_type::OP_NOT;
         table[+Parsing_state::EQUALS] = Token_type::OP_ASSIGNMENT;
         table[+Parsing_state::DOUBLE_EQUALS] = Token_type::OP_EQUAL;
+        table[+Parsing_state::NOT_EQUALS] = Token_type::OP_NOT_EQUAL;
         table[+Parsing_state::AMPERSAND] = Token_type::OP_ADRESS;
         table[+Parsing_state::DOUBLE_AMPERSAND] = Token_type::OP_AND;
         // table[+Parsing_state::PIPE] = Token_type::;
