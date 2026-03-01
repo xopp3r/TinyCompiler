@@ -104,17 +104,17 @@ export constexpr auto transition_function = [](Parsing_state state, Symbol_type 
         table[+Parsing_state::INITIAL][+Symbol_type::SINGLE_QUOTE] = Parsing_state::CHAR_LITERAL;
         for (size_t i = 0; i < +Symbol_type::size; i++) {
             table[+Parsing_state::CHAR_LITERAL][i] = Parsing_state::CHAR_LITERAL;
+            table[+Parsing_state::CHAR_LITERAL_escaped][i] = Parsing_state::CHAR_LITERAL;
         }
-        // table[+Parsing_state::CHAR_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::CHAR_LITERAL_escaped;
-        // ... TODO
+        table[+Parsing_state::CHAR_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::CHAR_LITERAL_escaped;
         table[+Parsing_state::CHAR_LITERAL][+Symbol_type::SINGLE_QUOTE] = Parsing_state::CHAR_LITERAL_end;
 
         table[+Parsing_state::INITIAL][+Symbol_type::DOUBLE_QUOTE] = Parsing_state::STRING_LITERAL;
         for (size_t i = 0; i < +Symbol_type::size; i++) {
             table[+Parsing_state::STRING_LITERAL][i] = Parsing_state::STRING_LITERAL;
+            table[+Parsing_state::STRING_LITERAL_escaped][i] = Parsing_state::STRING_LITERAL;
         }
-        // table[+Parsing_state::STRING_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::STRING_LITERAL_escaped;
-        // ... TODO
+        table[+Parsing_state::STRING_LITERAL][+Symbol_type::BACKSLASH] = Parsing_state::STRING_LITERAL_escaped;
         table[+Parsing_state::STRING_LITERAL][+Symbol_type::DOUBLE_QUOTE] = Parsing_state::STRING_LITERAL_end;
 
         // identifiers

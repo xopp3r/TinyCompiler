@@ -10,6 +10,7 @@ export module ast:nodes;
 export import :I_ast_visitor;
 export import :annotations;
 import exceptions;
+import unescape;
 import token;
 
 export namespace tc {
@@ -74,7 +75,9 @@ class Integer_literal final : public Primitive {
 
 class String_literal final : public Primitive {
    public:
-    explicit String_literal(Token literal) : Primitive(std::move(literal)){};
+    explicit String_literal(Token literal) : Primitive(std::move(literal)){
+        token.lexeme = unescape(token.lexeme.value());
+    };
 
     void* accept(I_ast_visitor& visitor) override { return visitor.visit(*this); }
 };
@@ -82,6 +85,7 @@ class String_literal final : public Primitive {
 class Char_literal final : public Primitive {
    public:
     explicit Char_literal(Token literal) : Primitive(std::move(literal)), value(0) {
+        token.lexeme = unescape(token.lexeme.value());
         if (std::size(token.lexeme.value()) != 1) {
             throw Parser_exception(std::format("Invalid char literal: {}", token), token.position);
         }

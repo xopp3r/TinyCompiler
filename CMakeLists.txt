@@ -51,6 +51,7 @@ target_sources(main
       src/driver/driver.ixx
 
       src/utils/ast_printer.ixx
+      src/utils/unescape.ixx
       
       src/semantics/type_checker.ixx
       src/semantics/type_system.ixx

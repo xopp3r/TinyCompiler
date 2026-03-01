@@ -60,7 +60,7 @@ export class Codegenerator : public I_ast_visitor {
     Codegenerator(std::string_view name, std::ostream& out, std::string asked_triple = llvm::sys::getDefaultTargetTriple())
         : module{name, ctx}, out{out} {
             llvm::Triple triple{asked_triple};
-            triple.setArchName("i686");
+            triple.setArchName("i386");
             module.setTargetTriple(triple);
 
             const char* DataLayout32Bit = 
