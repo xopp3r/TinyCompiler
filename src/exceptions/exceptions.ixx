@@ -53,4 +53,34 @@ export class Visibility_exception : public std::exception {
     std::optional<Position> pos;
 };
 
+export class Codegen_exception : public std::exception {
+   public:
+    constexpr Codegen_exception(std::string msg, Position pos) : msg(std::move(msg)), pos(pos) {}
+    constexpr Codegen_exception(std::string msg) : msg(std::move(msg)), pos(std::nullopt) {}
+
+    virtual ~Codegen_exception() = default;
+    constexpr const char* what() const noexcept override { return msg.c_str(); }
+
+    std::optional<Position> where() const noexcept { return pos; }
+
+   private:
+    std::string msg;
+    std::optional<Position> pos;
+};
+
+export class CFG_exception : public std::exception {
+   public:
+    constexpr CFG_exception(std::string msg, Position pos) : msg(std::move(msg)), pos(pos) {}
+    constexpr CFG_exception(std::string msg) : msg(std::move(msg)), pos(std::nullopt) {}
+
+    virtual ~CFG_exception() = default;
+    constexpr const char* what() const noexcept override { return msg.c_str(); }
+
+    std::optional<Position> where() const noexcept { return pos; }
+
+   private:
+    std::string msg;
+    std::optional<Position> pos;
+};
+
 }  // namespace tc

@@ -8,4 +8,5 @@ fn int main(int argc, ptr argv) {
     } else {
         if (var1) {}
     }
+    return 0;
 }

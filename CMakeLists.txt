@@ -64,6 +64,7 @@ target_sources(main
       src/semantics/type_system.ixx
       src/semantics/operation_categorires.ixx
       src/semantics/visibility_checker.ixx
+      src/semantics/cfg_checker.ixx
 
       src/parser/ast.ixx
       src/parser/nodes.ixx

@@ -1,6 +1,4 @@
 module;
-#include <sys/types.h>
-
 #include <cstdlib>
 #include <exception>
 #include <print>
@@ -13,6 +11,7 @@ import parser;
 import exceptions;
 import type_checker;
 import visibility_checker;
+import cfg_checker;
 import ast_printer;
 import codegen;
 
@@ -33,6 +32,8 @@ void validate_and_annotate_ast(AST& ast) {
     ast.root->accept(v);
     Type_checker t;
     ast.root->accept(t);
+    CFG_checker c;
+    ast.root->accept(c);
 }
 
 void generate_llvm_ir(const AST& ast) {
@@ -71,6 +72,14 @@ export void compile(std::ranges::input_range auto text, bool verbose = false) {
             std::println("Type error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
         } else {
             std::println("Type error:\n {}", e.what());
+        }
+        std::exit(EXIT_FAILURE);
+    } catch (CFG_exception& e) {
+        if (e.where()) {
+            const auto pos = e.where().value();
+            std::println("CFG error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+        } else {
+            std::println("CFG error:\n {}", e.what());
         }
         std::exit(EXIT_FAILURE);
     }
