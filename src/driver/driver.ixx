@@ -18,7 +18,6 @@ import cfg_checker;
 import ast_printer;
 import codegen;
 
-
 import ast;
 
 namespace tc {
@@ -45,7 +44,8 @@ void generate_llvm_ir(const AST& ast, std::string_view module_name, std::ostream
     codegen.generate(ast);
 }
 
-export void compile(std::istream& in = std::cin, std::ostream& out = std::cout, std::string_view name = "out.ll", bool dump_ast = false) {
+export void compile(std::istream& in = std::cin, std::ostream& out = std::cout, std::string_view name = "out.ll",
+                    bool dump_ast = false) {
     try {
         AST ast;
 
@@ -70,7 +70,8 @@ export void compile(std::istream& in = std::cin, std::ostream& out = std::cout, 
         } catch (Visibility_exception& e) {
             if (e.where()) {
                 const auto pos = e.where().value();
-                std::println(stderr, "Visibility error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1, e.what());
+                std::println(stderr, "Visibility error at line {}, col {}:\n {}", pos.line + 1, pos.column + 1,
+                             e.what());
             } else {
                 std::println(stderr, "Visibility error:\n {}", e.what());
             }
@@ -102,7 +103,7 @@ export void compile(std::istream& in = std::cin, std::ostream& out = std::cout, 
                 std::exit(EXIT_FAILURE);
             }
         } else {
-            try { // codegen            
+            try {  // codegen
 
                 generate_llvm_ir(ast, name, out);
 

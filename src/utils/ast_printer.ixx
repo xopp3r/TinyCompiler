@@ -4,8 +4,8 @@ module;
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <variant>
+#include <vector>
 
 #define SUBDIR(...)             \
     prefix.resize(++depth + 1); \
@@ -24,10 +24,8 @@ constexpr auto Ebar = std::u8string_view((u8"└─"));
 constexpr auto Nbar = std::u8string_view((u8"  "));
 
 namespace {
-    std::string constexpr operator+(std::string s, std::string_view sw) {
-        return s + std::string{sw};
-    }
-}
+std::string constexpr operator+(std::string s, std::string_view sw) { return s + std::string{sw}; }
+}  // namespace
 
 export class AST_printer final : public I_ast_visitor {
    public:
@@ -105,9 +103,8 @@ void AST_printer::updateTempPrefix() {
 }
 
 void AST_printer::print(const std::string_view& str) {
-    for (const auto& pref : prefix) 
-        out << pref;
-    
+    for (const auto& pref : prefix) out << pref;
+
     out << str << std::endl;
     updateTempPrefix();
 }
@@ -138,8 +135,7 @@ void* AST_printer::visit(Type_operation& node) {
 void* AST_printer::visit(Function_call& node) {
     print("FunctionCall");
     SUBDIR(setTempPrefix(Cbar, Vbar); print("adress");
-           SUBDIR(setTempPrefix(Ebar, Nbar); 
-        std::visit([this](auto&& e){ e->accept(*this); }, node.function_address);)
+           SUBDIR(setTempPrefix(Ebar, Nbar); std::visit([this](auto&& e) { e->accept(*this); }, node.function_address);)
 
                setTempPrefix(Ebar, Nbar);
            print("args " + std::to_string(node.arguments.size())); SUBDIR(printVec(node.arguments);)

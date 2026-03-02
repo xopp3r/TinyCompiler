@@ -166,13 +166,24 @@ class Parser {
                     discard_token<TT::SQUARE_BRACE_CLOSE>();
 
                     // converting arr[type, i] to @((arr as uint + (i * sizeof(type))) as ptr)
-                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(left), Token{std::nullopt, tok->position, TT::TYPE_UINT});
-                    right = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(right), Token{std::nullopt, tok->position, TT::TYPE_UINT});
-                    auto size = std::make_unique<Integer_literal>(Token{std::to_string(static_cast<int>(size_of_type(type_mapping(type.type)))), tok->position, TT::NUMBER});
-                    right = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_MUL}, std::move(right), std::move(size));
-                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_PLUS}, std::move(left), std::move(right));
-                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS}, std::move(right), Token{std::nullopt, tok->position, TT::TYPE_PTR});
-                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE}, std::move(left));
+                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS},
+                                                            std::move(left),
+                                                            Token{std::nullopt, tok->position, TT::TYPE_UINT});
+                    right = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS},
+                                                             std::move(right),
+                                                             Token{std::nullopt, tok->position, TT::TYPE_UINT});
+                    auto size = std::make_unique<Integer_literal>(
+                        Token{std::to_string(static_cast<int>(size_of_type(type_mapping(type.type)))), tok->position,
+                              TT::NUMBER});
+                    right = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_MUL},
+                                                               std::move(right), std::move(size));
+                    left = std::make_unique<Binary_operation>(Token{std::nullopt, tok->position, TT::OP_PLUS},
+                                                              std::move(left), std::move(right));
+                    left = std::make_unique<Type_operation>(Token{std::nullopt, tok->position, TT::KEYWORD_AS},
+                                                            std::move(right),
+                                                            Token{std::nullopt, tok->position, TT::TYPE_PTR});
+                    left = std::make_unique<Unary_operation>(Token{std::nullopt, tok->position, TT::OP_DEREFERENCE},
+                                                             std::move(left));
                     break;
                 }
                 case TT::PARENTHESES_OPEN: {
@@ -367,7 +378,7 @@ class Parser {
     }
 
     // argument_list_defenition
-    //     : (variable_declaration (',' variable_declaration)* (',' '...')?)? 
+    //     : (variable_declaration (',' variable_declaration)* (',' '...')?)?
     //     ;
     std::pair<std::vector<std::unique_ptr<Variable_declaration_statement>>, bool> parse_argument_list_defenition() {
         std::vector<std::unique_ptr<Variable_declaration_statement>> args;
@@ -382,7 +393,8 @@ class Parser {
                 discard_token<TT::DOT>();
                 discard_token<TT::DOT>();
                 variadic = true;
-            } else args.push_back(parse_variable_declaration_statement());
+            } else
+                args.push_back(parse_variable_declaration_statement());
         } while (try_discard_token<TT::COMMA>());
 
         return {std::move(args), variadic};
@@ -403,7 +415,7 @@ class Parser {
         } else {
             auto body = parse_body();
             return std::make_unique<Function_definition>(std::move(name), std::move(type), std::move(args), variadic,
-                std::move(body));
+                                                         std::move(body));
         }
     }
 

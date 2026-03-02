@@ -75,7 +75,7 @@ class Integer_literal final : public Primitive {
 
 class String_literal final : public Primitive {
    public:
-    explicit String_literal(Token literal) : Primitive(std::move(literal)){
+    explicit String_literal(Token literal) : Primitive(std::move(literal)) {
         token.lexeme = unescape(token.lexeme.value());
     };
 
@@ -136,14 +136,14 @@ class Function_call final : public Expression {
    public:
     explicit Function_call(std::unique_ptr<Expression> function_adress,
                            std::vector<std::unique_ptr<Expression>> arguments)
-        : function_address({}), arguments(std::move(arguments)){
-            Expression* raw = function_adress.release();
-            if (auto* var = dynamic_cast<Variable*>(raw)) {
-                function_address = std::unique_ptr<Variable>(var);
-            } else {
-                function_address = std::unique_ptr<Expression>(raw);
-            }
-        };
+        : function_address({}), arguments(std::move(arguments)) {
+        Expression* raw = function_adress.release();
+        if (auto* var = dynamic_cast<Variable*>(raw)) {
+            function_address = std::unique_ptr<Variable>(var);
+        } else {
+            function_address = std::unique_ptr<Expression>(raw);
+        }
+    };
 
     std::variant<std::unique_ptr<Expression>, std::unique_ptr<Variable>> function_address;
     std::vector<std::unique_ptr<Expression>> arguments;
@@ -231,8 +231,7 @@ class Function_definition final : public Node {
    public:
     explicit Function_definition(Token name, Token return_type,
                                  std::vector<std::unique_ptr<Variable_declaration_statement>> arguments,
-                                 bool variadic = false,
-                                 std::vector<std::unique_ptr<Statement>> body = {},
+                                 bool variadic = false, std::vector<std::unique_ptr<Statement>> body = {},
                                  Linkage_type linkage = Linkage_type::NONE)
         : var(Token{{}, {}, Token_type::TYPE_PTR}, std::move(name), linkage),
           return_type(std::move(return_type)),

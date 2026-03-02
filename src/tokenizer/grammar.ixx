@@ -2,8 +2,8 @@ module;
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <string_view>
 #include <functional>
+#include <string_view>
 
 export module parsing_dfa:grammar;
 import token;

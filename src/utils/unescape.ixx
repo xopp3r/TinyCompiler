@@ -9,12 +9,30 @@ export std::string unescape(const std::string& s) {
         if (s[i] == '\\' && i + 1 < s.size()) {
             char next = s[i + 1];
             switch (next) {
-                case 'n':  result.push_back('\n'); ++i; break;
-                case 't':  result.push_back('\t'); ++i; break;
-                case 'r':  result.push_back('\r'); ++i; break;
-                case '\\': result.push_back('\\'); ++i; break;
-                case '"':  result.push_back('"');  ++i; break;
-                case '\'': result.push_back('\''); ++i; break;
+                case 'n':
+                    result.push_back('\n');
+                    ++i;
+                    break;
+                case 't':
+                    result.push_back('\t');
+                    ++i;
+                    break;
+                case 'r':
+                    result.push_back('\r');
+                    ++i;
+                    break;
+                case '\\':
+                    result.push_back('\\');
+                    ++i;
+                    break;
+                case '"':
+                    result.push_back('"');
+                    ++i;
+                    break;
+                case '\'':
+                    result.push_back('\'');
+                    ++i;
+                    break;
                 // TODO
                 default:
                     result.push_back('\\');

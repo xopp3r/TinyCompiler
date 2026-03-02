@@ -15,8 +15,6 @@ using Type = Expression_type;
 using Metadata = Expression_metadata;
 using Category = Expression_category;
 
-
-
 bool is_signed(Type t) { return t != Type::UINT; }
 
 bool convertible_to(Type from, Type to) {

@@ -101,4 +101,3 @@ struct std::formatter<tc::Expression_type> {
         return std::format_to(ctx.out(), "{}", type_name(e));
     }
 };
-

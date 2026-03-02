@@ -3,9 +3,9 @@ module;
 #include <cstddef>
 #include <format>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <variant>
-#include <memory>
 
 export module type_checker;
 import type_system;
@@ -94,18 +94,20 @@ export class Type_checker final : public I_ast_visitor {
     }
 
     void* visit(Function_call& node) override {
-        std::visit([this](auto&& e){ e->accept(*this); }, node.function_address);
+        std::visit([this](auto&& e) { e->accept(*this); }, node.function_address);
         for (auto&& arg : node.arguments) arg->accept(*this);
 
-        std::visit([this](auto&& e){ 
-            if (e->metadata.type != Type::PTR)
-                throw Type_exception(std::format("trying to call a value of non-pointer type as function {}",
-                                                e->metadata.type),current_function->get().return_type.position);
-        }, node.function_address);
-
+        std::visit(
+            [this](auto&& e) {
+                if (e->metadata.type != Type::PTR)
+                    throw Type_exception(
+                        std::format("trying to call a value of non-pointer type as function {}", e->metadata.type),
+                        current_function->get().return_type.position);
+            },
+            node.function_address);
 
         std::optional<Func_ref> function;
-        if (auto* v = std::get_if<std::unique_ptr<Variable>>(&node.function_address)) 
+        if (auto* v = std::get_if<std::unique_ptr<Variable>>(&node.function_address))
             function = (*v)->source.value().get().if_function;
 
         if (not function.has_value()) {
@@ -151,9 +153,8 @@ export class Type_checker final : public I_ast_visitor {
         switch (op_category_mapping(node.operation.type)) {
             case Op_category::CAST:
                 if (node.value->metadata.type == Type::VOID)
-                    throw Type_exception(
-                        std::format("no conversion to {}", node.type.content_str()),
-                        node.operation.position);
+                    throw Type_exception(std::format("no conversion to {}", node.type.content_str()),
+                                         node.operation.position);
 
                 node.metadata = {t, Category::RVALUE};
                 break;

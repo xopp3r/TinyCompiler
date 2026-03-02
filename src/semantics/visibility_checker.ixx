@@ -42,7 +42,7 @@ export class Visibility_checker final : public I_ast_visitor {
     }
 
     void* visit(Function_call& node) override {
-        std::visit([this](auto&& e){ e->accept(*this); }, node.function_address);
+        std::visit([this](auto&& e) { e->accept(*this); }, node.function_address);
         for (auto&& arg : node.arguments) {
             arg->accept(*this);
         }
@@ -69,9 +69,10 @@ export class Visibility_checker final : public I_ast_visitor {
     }
 
     void* visit(Variable_declaration_statement& node) override {
-        if (resolve_name(node.name.content_str())) 
-            throw Visibility_exception(std::format("Name {} already exists", node.name.content_str()), node.name.position);
-        
+        if (resolve_name(node.name.content_str()))
+            throw Visibility_exception(std::format("Name {} already exists", node.name.content_str()),
+                                       node.name.position);
+
         visible_vars.back().push_back(std::ref(node));
         return nullptr;
     }
