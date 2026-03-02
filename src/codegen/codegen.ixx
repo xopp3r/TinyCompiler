@@ -120,20 +120,29 @@ export class Codegenerator : public I_ast_visitor {
 
         auto* l_val = cast2llvmv node.left_value->accept(*this);
         auto* r_val = cast2llvmv node.right_value->accept(*this);
+        const bool sign = (node.left_value->metadata.type != Type::UINT);
 
         switch (node.operation.type) {
             case Token_type::OP_PLUS:
                 return builder.CreateAdd(l_val, r_val);
             case Token_type::OP_MINUS:
                 return builder.CreateSub(l_val, r_val);
-            case Token_type::OP_GREATER:
-                return builder.CreateICmpSGT(l_val, r_val);
-            case Token_type::OP_LESS:
-                return builder.CreateICmpSLT(l_val, r_val);
-            case Token_type::OP_GREATER_EQ:
-                return builder.CreateICmpSGE(l_val, r_val);
-            case Token_type::OP_LESS_EQ:
-                return builder.CreateICmpSLE(l_val, r_val);
+            case Token_type::OP_GREATER: {
+                if (sign) return builder.CreateICmpSGT(l_val, r_val);
+                else return builder.CreateICmpUGT(l_val, r_val); 
+            }
+            case Token_type::OP_LESS: {
+                if (sign) return builder.CreateICmpSLT(l_val, r_val);
+                else return builder.CreateICmpULT(l_val, r_val);
+            }
+            case Token_type::OP_GREATER_EQ: {
+                if (sign) return builder.CreateICmpSGE(l_val, r_val);
+                else return builder.CreateICmpUGE(l_val, r_val); 
+            }
+            case Token_type::OP_LESS_EQ: {
+                if (sign) return builder.CreateICmpSLE(l_val, r_val);
+                else return builder.CreateICmpULE(l_val, r_val);
+            }
             case Token_type::OP_EQUAL:
                 return builder.CreateICmpEQ(l_val, r_val);
             case Token_type::OP_NOT_EQUAL:

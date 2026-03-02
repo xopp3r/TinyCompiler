@@ -114,5 +114,3 @@ programm
     ;
 
 
-
-// TODO external function / variable declaration

@@ -33,7 +33,6 @@ export std::string unescape(const std::string& s) {
                     result.push_back('\'');
                     ++i;
                     break;
-                // TODO
                 default:
                     result.push_back('\\');
                     result.push_back(next);
