@@ -32,7 +32,7 @@ auto main(const int argc, char const* const* const argv) -> int {
             std::exit(EXIT_SUCCESS);
 
         } else if (arg == "-version") {
-            std::println("Tiny compiler by @xopp3r. Version 0.1.0");
+            std::println("TinyCLLC by @xopp3r. Version 0.1.1");
             std::exit(EXIT_SUCCESS);
 
         } else if (arg == "-o") {
@@ -66,10 +66,11 @@ auto main(const int argc, char const* const* const argv) -> int {
         std::exit(EXIT_FAILURE);
     }
 
+    if (in_filename.empty()) in_filename = "unknown";
 
     if (use_stdio) {
 
-        tc::compile(std::cin, std::cout, out_filename, emit_ast);
+        tc::compile(std::cin, std::cout, in_filename, emit_ast);
 
     } else {
         std::ifstream in_file(in_filename.data()); 
@@ -84,6 +85,6 @@ auto main(const int argc, char const* const* const argv) -> int {
             std::exit(EXIT_FAILURE);
         }
 
-        tc::compile(in_file, out_file, out_filename, emit_ast);
+        tc::compile(in_file, out_file, in_filename, emit_ast);
     }
 }

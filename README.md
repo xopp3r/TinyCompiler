@@ -1,4 +1,4 @@
-# Tiny compiler: A compiler for C-like Language with libc seamless Integration
+# TinyCLLC: A compiler for C-like Language with libc seamless Integration
 
 A toy compiler for a C-like programming language built with C++23 and the LLVM API. It generates LLVM IR, which can be either interpreted directly or compiled into a native executable. This project was created to explore the LLVM infrastructure and gain hands‑on experience with compiler construction and modern C++.
 
@@ -63,4 +63,4 @@ export fn int main() {
 
 ### WIP
 
-This is a prototype, it will have bugs, not all features are implemented yet (like indirect calls).
+This is a prototype, it will have bugs, not all features are implemented yet. To get executable from obtained .ll file you have to do ```clang -m32 file.ll```

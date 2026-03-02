@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(TinyCompiler LANGUAGES CXX C)
+project(TinyCLLC LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED 1)
@@ -14,9 +14,9 @@ find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-add_executable(main)
+add_executable(TinyCLLC)
 
-target_compile_options(main PRIVATE 
+target_compile_options(TinyCLLC PRIVATE 
     -Wall -Wextra -Wpedantic -Werror -Wredundant-decls -Wunused
     
     $<$<CONFIG:Debug>:
@@ -34,12 +34,12 @@ target_compile_options(main PRIVATE
     >
 ) 
 
-target_sources(main 
+target_sources(TinyCLLC 
   PRIVATE
     src/main.cpp
 )
 
-target_sources(main
+target_sources(TinyCLLC
   PRIVATE
     FILE_SET modules TYPE CXX_MODULES
     FILES
@@ -75,7 +75,7 @@ target_sources(main
 
 llvm_map_components_to_libnames(llvm_libs support core codegen irreader)
 
-target_include_directories(main PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(main SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
-target_link_libraries(main ${llvm_libs})
+target_include_directories(TinyCLLC PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(TinyCLLC PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(TinyCLLC SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
+target_link_libraries(TinyCLLC ${llvm_libs})
